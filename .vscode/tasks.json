@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Iniciar Sistema Completo",
+      "type": "shell",
+      "command": "${workspaceFolder}\\INICIAR-TUDO.bat",
+      "problemMatcher": []
+    },
+    {
+      "label": "Parar Sistema Completo",
+      "type": "shell",
+      "command": "${workspaceFolder}\\PARAR-TUDO.bat",
+      "problemMatcher": []
+    }
+  ]
+}

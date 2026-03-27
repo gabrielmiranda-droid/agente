@@ -1,0 +1,10 @@
+[project]
+name = "whatsapp-saas-platform"
+version = "2.0.0"
+description = "Plataforma SaaS multiempresa de atendimento inteligente via WhatsApp com FastAPI, Evolution API e OpenAI."
+requires-python = ">=3.12,<3.15"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q"
