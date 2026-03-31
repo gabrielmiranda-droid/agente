@@ -192,7 +192,7 @@ export default function ConversationsPage() {
               <Badge variant="neutral">{filteredConversations.length} conversas</Badge>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
               <ConversationList
                 conversations={filteredConversations}
                 selectedId={selectedId}

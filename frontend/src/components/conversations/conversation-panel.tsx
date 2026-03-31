@@ -172,7 +172,7 @@ export function ConversationPanel({
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,255,255,0.26),transparent_18%)] px-6 py-6 dark:bg-none">
+          <div className="flex-1 overflow-y-auto overscroll-contain bg-[linear-gradient(180deg,rgba(255,255,255,0.26),transparent_18%)] px-6 py-6 dark:bg-none">
             {loadingMessages ? (
               <div className="space-y-3">
                 <div className="h-20 w-2/3 rounded-[1.6rem] bg-muted" />
@@ -225,7 +225,7 @@ export function ConversationPanel({
           </div>
         </div>
 
-        <aside className="min-h-0 overflow-y-auto border-l bg-background/90 p-5">
+        <aside className="min-h-0 overflow-y-auto overscroll-contain border-l bg-background/90 p-5">
           <div className="space-y-5">
             <div>
               <p className="text-sm font-semibold">Contexto interno</p>
