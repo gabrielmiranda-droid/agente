@@ -62,17 +62,17 @@ function ClientDashboard({ companyId }: { companyId?: number }) {
             <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Inbox</p>
               <p className="mt-2 text-2xl font-semibold text-white">{panel.inbox_counts.open ?? 0}</p>
-              <p className="mt-1 text-sm text-slate-500">conversas em aberto</p>
+              <p className="mt-1 text-sm text-slate-500">conversas aguardando acao</p>
             </div>
             <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Financeiro</p>
               <p className="mt-2 text-2xl font-semibold text-white">{formatCurrencyBrl(panel.finance_summary.total_sold)}</p>
-              <p className="mt-1 text-sm text-slate-500">vendas no periodo</p>
+              <p className="mt-1 text-sm text-slate-500">vendas consolidadas</p>
             </div>
             <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Catalogo</p>
               <p className="mt-2 text-2xl font-semibold text-white">{panel.catalog_summary.products ?? 0}</p>
-              <p className="mt-1 text-sm text-slate-500">produtos ativos para atendimento</p>
+              <p className="mt-1 text-sm text-slate-500">produtos prontos para venda</p>
             </div>
           </div>
         </div>
@@ -235,12 +235,12 @@ function DevDashboard() {
             <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Empresas</p>
               <p className="mt-2 text-2xl font-semibold text-white">{panel.company_breakdown.length}</p>
-              <p className="mt-1 text-sm text-slate-500">contas cadastradas</p>
+              <p className="mt-1 text-sm text-slate-500">contas ativas na base</p>
             </div>
             <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">IA</p>
               <p className="mt-2 text-2xl font-semibold text-white">{formatCurrencyBrl(panel.ai_usage.estimated_cost)}</p>
-              <p className="mt-1 text-sm text-slate-500">custo estimado acumulado</p>
+              <p className="mt-1 text-sm text-slate-500">custo acumulado de operacao</p>
             </div>
           </div>
         </div>

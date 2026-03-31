@@ -70,11 +70,11 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       CELERY_TASK_QUEUE_MESSAGES: messages
       IDEMPOTENCY_TTL_SECONDS: 3600
-      BOOTSTRAP_COMPANY_NAME: Empresa Demo
-      BOOTSTRAP_COMPANY_SLUG: empresa-demo
-      BOOTSTRAP_DEV_NAME: Dev Demo
-      BOOTSTRAP_DEV_EMAIL: admin@demo.com
-      BOOTSTRAP_DEV_PASSWORD: De250579
+      BOOTSTRAP_COMPANY_NAME: ""
+      BOOTSTRAP_COMPANY_SLUG: ""
+      BOOTSTRAP_DEV_NAME: ""
+      BOOTSTRAP_DEV_EMAIL: ""
+      BOOTSTRAP_DEV_PASSWORD: ""
     expose:
       - "8000"
     command: sh ./scripts/start.sh
@@ -117,11 +117,11 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       CELERY_TASK_QUEUE_MESSAGES: messages
       IDEMPOTENCY_TTL_SECONDS: 3600
-      BOOTSTRAP_COMPANY_NAME: Empresa Demo
-      BOOTSTRAP_COMPANY_SLUG: empresa-demo
-      BOOTSTRAP_DEV_NAME: Dev Demo
-      BOOTSTRAP_DEV_EMAIL: admin@demo.com
-      BOOTSTRAP_DEV_PASSWORD: De250579
+      BOOTSTRAP_COMPANY_NAME: ""
+      BOOTSTRAP_COMPANY_SLUG: ""
+      BOOTSTRAP_DEV_NAME: ""
+      BOOTSTRAP_DEV_EMAIL: ""
+      BOOTSTRAP_DEV_PASSWORD: ""
     command: sh ./scripts/start-worker.sh
 
   frontend:
