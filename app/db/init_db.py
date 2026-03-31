@@ -2,7 +2,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.roles import ROLE_ATTENDANT, ROLE_DEV
+from app.core.roles import ROLE_CLIENT, ROLE_DEV
 from app.core.security import hash_password
 from app.db.base import Base
 from app.models.ai import AIAgent
@@ -11,7 +11,7 @@ from app.models.billing import Plan, Subscription
 from app.models.company import Company
 from app.utils.helpers import build_delivery_system_prompt
 
-DEFAULT_ROLES = (ROLE_DEV, ROLE_ATTENDANT)
+DEFAULT_ROLES = (ROLE_DEV, ROLE_CLIENT)
 DEFAULT_PLANS = (
     ("free", "Free", 1000, 2, 1),
     ("basic", "Basic", 10000, 10, 3),
@@ -35,10 +35,11 @@ def _get_or_create_role(db: Session, role_name: str) -> Role:
 
 def _migrate_legacy_roles(db: Session) -> None:
     dev_role = _get_or_create_role(db, ROLE_DEV)
-    attendant_role = _get_or_create_role(db, ROLE_ATTENDANT)
+    client_role = _get_or_create_role(db, ROLE_CLIENT)
 
     legacy_admin = db.query(Role).filter(Role.name == "admin").first()
     legacy_manager = db.query(Role).filter(Role.name == "manager").first()
+    legacy_attendant = db.query(Role).filter(Role.name == "attendant").first()
 
     if legacy_admin:
         for user in db.query(User).filter(User.role_id == legacy_admin.id).all():
@@ -46,7 +47,11 @@ def _migrate_legacy_roles(db: Session) -> None:
 
     if legacy_manager:
         for user in db.query(User).filter(User.role_id == legacy_manager.id).all():
-            user.role_id = attendant_role.id
+            user.role_id = client_role.id
+
+    if legacy_attendant and legacy_attendant.id != client_role.id:
+        for user in db.query(User).filter(User.role_id == legacy_attendant.id).all():
+            user.role_id = client_role.id
 
 
 def seed_base_data(db: Session) -> None:

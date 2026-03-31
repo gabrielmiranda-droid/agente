@@ -25,14 +25,14 @@ export function AppSidebar() {
     .filter((section) => section.items.length > 0);
 
   return (
-    <aside className="hidden w-[284px] shrink-0 border-r border-white/6 bg-black xl:flex xl:flex-col">
-      <div className="border-b border-white/6 px-5 py-5">
+    <aside className="hidden w-[284px] shrink-0 border-r border-stone-200/80 bg-white/80 backdrop-blur xl:flex xl:flex-col">
+      <div className="border-b border-stone-200/80 px-5 py-5">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-primary">
+          <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-orange-50 text-primary">
             <Building2 className="h-4 w-4" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-white">{roleExperience.sidebarTitle}</p>
+            <p className="text-sm font-semibold text-slate-900">{roleExperience.sidebarTitle}</p>
             <p className="text-xs leading-5 text-slate-500">{roleExperience.sidebarDescription}</p>
           </div>
         </div>
@@ -55,11 +55,11 @@ export function AppSidebar() {
                     className={cn(
                       "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
                       isActive
-                        ? "bg-white/[0.08] font-medium text-white"
-                        : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                        ? "bg-orange-50 font-medium text-slate-900"
+                        : "text-slate-500 hover:bg-stone-100 hover:text-slate-900"
                     )}
                   >
-                    <item.icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-slate-500")} />
+                    <item.icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-slate-400")} />
                     <span>{item.title}</span>
                   </Link>
                 );
@@ -69,27 +69,27 @@ export function AppSidebar() {
         ))}
       </div>
 
-      <div className="border-t border-white/6 p-4">
-        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+      <div className="border-t border-stone-200/80 p-4">
+        <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-primary" />
-            <p className="text-sm font-medium text-white">{getRoleLabel(user?.role)}</p>
+            <p className="text-sm font-medium text-slate-900">{getRoleLabel(user?.role)}</p>
           </div>
 
           {isDev(user) ? (
-            <div className="mt-3 space-y-2 text-sm text-slate-400">
+            <div className="mt-3 space-y-2 text-sm text-slate-500">
               <div className="flex items-center justify-between">
                 <span>Empresas no SaaS</span>
-                <span className="font-medium text-white">{companiesCount}</span>
+                <span className="font-medium text-slate-900">{companiesCount}</span>
               </div>
-              <Link href="/companies" className="inline-flex items-center gap-1 text-sm font-medium text-white">
+              <Link href="/companies" className="inline-flex items-center gap-1 text-sm font-medium text-slate-900">
                 Administrar contas
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
           ) : (
-            <p className="mt-3 text-sm leading-6 text-slate-400">
-              Atualize apenas os dados operacionais da sua empresa: negocio, equipe, FAQ, cardapio e atendimento.
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              Atualize apenas os dados operacionais da sua empresa: pedidos, cardapio, estoque, horarios e atendimento.
             </p>
           )}
         </div>

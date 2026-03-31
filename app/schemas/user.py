@@ -8,7 +8,7 @@ class UserCreate(BaseModel):
     name: str = Field(min_length=2, max_length=255)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    role: Literal["dev", "attendant"]
+    role: Literal["dev", "client", "attendant"]
 
 
 class UserResponse(BaseModel):
@@ -18,6 +18,6 @@ class UserResponse(BaseModel):
     company_id: int
     name: str
     email: EmailStr
-    role: Literal["dev", "attendant"]
+    role: Literal["dev", "client"]
     is_active: bool
     created_at: datetime

@@ -48,3 +48,5 @@ class Company(Base):
     product_addons = relationship("ProductAddon", back_populates="company", cascade="all, delete-orphan")
     business_hours_entries = relationship("BusinessHour", back_populates="company", cascade="all, delete-orphan")
     promotions = relationship("Promotion", back_populates="company", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="company", cascade="all, delete-orphan")
+    inventory_items = relationship("InventoryItem", back_populates="company", cascade="all, delete-orphan")

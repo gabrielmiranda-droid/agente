@@ -9,8 +9,8 @@
   --card-foreground: 210 20% 96%;
   --popover: 0 0% 7%;
   --popover-foreground: 210 20% 96%;
-  --primary: 191 92% 54%;
-  --primary-foreground: 222 47% 7%;
+  --primary: 21 90% 54%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 11%;
   --secondary-foreground: 210 20% 94%;
   --muted: 0 0% 10%;
@@ -21,7 +21,7 @@
   --destructive-foreground: 0 0% 100%;
   --border: 0 0% 16%;
   --input: 0 0% 14%;
-  --ring: 191 92% 54%;
+  --ring: 21 90% 54%;
   --radius: 1.15rem;
 }
 
@@ -58,9 +58,9 @@ html {
 body {
   @apply bg-background font-sans text-foreground antialiased;
   background-image:
-    radial-gradient(circle at top left, rgba(34, 211, 238, 0.1), transparent 24%),
-    radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 20%),
-    radial-gradient(circle at bottom center, rgba(59, 130, 246, 0.06), transparent 28%),
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(251, 146, 60, 0.12), transparent 20%),
+    radial-gradient(circle at bottom center, rgba(16, 185, 129, 0.06), transparent 28%),
     linear-gradient(180deg, rgba(5, 5, 5, 0.98), rgba(8, 8, 8, 0.98));
   min-height: 100vh;
 }
@@ -80,7 +80,7 @@ p {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 22%),
+    radial-gradient(circle at top right, rgba(249, 115, 22, 0.08), transparent 22%),
     radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.07), transparent 24%);
   background-size: 24px 24px, 24px 24px, auto, auto;
 }

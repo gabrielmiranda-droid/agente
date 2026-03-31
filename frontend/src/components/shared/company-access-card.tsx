@@ -35,7 +35,7 @@ export function CompanyAccessCard() {
           <div>
             <p className="text-sm font-medium text-white">Papeis simples</p>
             <p className="mt-1 text-sm leading-6 text-slate-400">
-              `dev` controla a plataforma. `attendant` opera a propria empresa sem tocar em configuracoes criticas.
+              `dev` controla a plataforma. `client` opera apenas a propria empresa sem tocar em configuracoes tecnicas.
             </p>
           </div>
         </div>

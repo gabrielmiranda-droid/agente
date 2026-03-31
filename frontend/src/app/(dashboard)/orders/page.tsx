@@ -8,162 +8,141 @@ import { ErrorState } from "@/components/shared/error-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCompanyScope } from "@/hooks/use-company-scope";
-import { useConversationActions, useConversations } from "@/hooks/use-conversations";
-import { getContactDisplayName, formatDateTime, formatPhoneNumber } from "@/lib/formatters";
+import { useOperationalOrderActions, useOperationalOrders } from "@/hooks/use-operations";
+import { formatCurrencyBrl, formatDateTime, formatPhoneNumber } from "@/lib/formatters";
 import { getErrorMessage } from "@/lib/errors";
-import type { Conversation } from "@/types/conversation";
+import type { OperationalOrder, OperationalOrderStatus } from "@/types/operations";
 
-type OrderStage = "new" | "preparing" | "delivery" | "finished";
-
-function getOrderStage(conversation: Conversation): OrderStage {
-  if (conversation.status === "resolved") return "finished";
-  if (conversation.tags?.includes("entrega")) return "delivery";
-  if (conversation.status === "pending") return "preparing";
-  return "new";
-}
-
-const stageMeta: Record<OrderStage, { title: string; badge: "warning" | "neutral" | "default" | "success" }> = {
-  new: { title: "Novo pedido", badge: "warning" },
-  preparing: { title: "Em preparo", badge: "default" },
-  delivery: { title: "Saiu para entrega", badge: "neutral" },
-  finished: { title: "Finalizado", badge: "success" }
-};
+const columns: Array<{ status: OperationalOrderStatus; title: string; description: string }> = [
+  { status: "new", title: "Novo", description: "Pedido recebido e aguardando confirmacao." },
+  { status: "confirmed", title: "Confirmado", description: "Pedido validado e pronto para imprimir." },
+  { status: "in_preparation", title: "Em preparo", description: "Cozinha ou separacao em andamento." },
+  { status: "out_for_delivery", title: "Saiu para entrega", description: "Pedido em rota." },
+  { status: "ready_for_pickup", title: "Pronto para retirada", description: "Pedido disponivel no balcao." },
+  { status: "completed", title: "Concluido", description: "Pedido encerrado com sucesso." },
+  { status: "cancelled", title: "Cancelado", description: "Pedido perdido ou cancelado." }
+];
 
 export default function OrdersPage() {
   const companyId = useCompanyScope();
-  const conversationsQuery = useConversations(companyId);
+  const ordersQuery = useOperationalOrders(companyId);
 
-  if (conversationsQuery.isLoading) {
-    return <LoadingState label="Carregando pedidos..." description="Buscando pedidos recebidos pela operação." />;
+  if (ordersQuery.isLoading) {
+    return <LoadingState label="Carregando pedidos..." description="Buscando os pedidos estruturados da empresa." />;
   }
 
-  if (conversationsQuery.error) {
-    return <ErrorState description="Não foi possível carregar os pedidos." onRetry={() => void conversationsQuery.refetch()} />;
+  if (ordersQuery.error) {
+    return <ErrorState description="Nao foi possivel carregar os pedidos." onRetry={() => void ordersQuery.refetch()} />;
   }
 
-  const conversations = conversationsQuery.data ?? [];
-  const groups: Record<OrderStage, Conversation[]> = {
-    new: [],
-    preparing: [],
-    delivery: [],
-    finished: []
-  };
-
-  conversations.forEach((conversation) => {
-    groups[getOrderStage(conversation)].push(conversation);
-  });
+  const orders = ordersQuery.data ?? [];
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Pedidos"
-        title="Pedidos da operação"
-        description="Acompanhe o andamento dos pedidos recebidos pelo WhatsApp e organize o fluxo entre novo, preparo, entrega e finalização."
+        title="Esteira operacional"
+        description="Fluxo claro por status, com impressao disparada a partir da confirmacao do pedido e historico tecnico de impressao."
       />
 
-      <div className="grid gap-4 xl:grid-cols-4">
-        {(["new", "preparing", "delivery", "finished"] as OrderStage[]).map((stage) => (
-          <OrderColumn key={stage} stage={stage} conversations={groups[stage]} />
+      <div className="grid gap-4 xl:grid-cols-4 2xl:grid-cols-7">
+        {columns.map((column) => (
+          <OrderColumn key={column.status} column={column} orders={orders.filter((order) => order.status === column.status)} />
         ))}
       </div>
     </div>
   );
 }
 
-function OrderColumn({ stage, conversations }: { stage: OrderStage; conversations: Conversation[] }) {
+function OrderColumn({
+  column,
+  orders
+}: {
+  column: (typeof columns)[number];
+  orders: OperationalOrder[];
+}) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="border-white/8 bg-white/[0.03]">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between gap-3">
-          <span>{stageMeta[stage].title}</span>
-          <Badge variant={stageMeta[stage].badge}>{conversations.length}</Badge>
+        <CardTitle className="flex items-center justify-between gap-3 text-white">
+          <span>{column.title}</span>
+          <Badge variant="neutral">{orders.length}</Badge>
         </CardTitle>
-        <CardDescription>
-          {stage === "new" && "Pedidos recém-chegados esperando triagem."}
-          {stage === "preparing" && "Pedidos que já entraram no fluxo de produção."}
-          {stage === "delivery" && "Pedidos em rota ou aguardando retirada."}
-          {stage === "finished" && "Pedidos já concluídos ou encerrados."}
-        </CardDescription>
+        <p className="text-sm leading-6 text-slate-500">{column.description}</p>
       </CardHeader>
       <CardContent className="space-y-3">
-        {conversations.length ? (
-          conversations.map((conversation) => <OrderCard key={conversation.id} conversation={conversation} />)
+        {orders.length ? (
+          orders.map((order) => <OrderCard key={order.id} order={order} />)
         ) : (
-          <EmptyState
-            title="Nenhum pedido"
-            description="Assim que a operação receber pedidos neste estágio, eles aparecerão aqui."
-          />
+          <EmptyState title="Sem pedidos" description="Nenhum pedido neste estagio agora." />
         )}
       </CardContent>
     </Card>
   );
 }
 
-function OrderCard({ conversation }: { conversation: Conversation }) {
+function OrderCard({ order }: { order: OperationalOrder }) {
   const companyId = useCompanyScope();
-  const actions = useConversationActions(conversation.id, companyId);
+  const actions = useOperationalOrderActions(companyId);
 
-  const moveTo = async (stage: OrderStage) => {
-    const nextPayload =
-      stage === "new"
-        ? { status: "open" as const, tags: (conversation.tags ?? []).filter((item) => item !== "entrega") }
-        : stage === "preparing"
-          ? { status: "pending" as const, tags: (conversation.tags ?? []).filter((item) => item !== "entrega") }
-          : stage === "delivery"
-            ? { status: "pending" as const, tags: [...new Set([...(conversation.tags ?? []), "entrega"])] }
-            : { status: "resolved" as const, tags: conversation.tags ?? [] };
-
+  const moveTo = async (status: OperationalOrderStatus) => {
     try {
-      await actions.updateConversationMutation.mutateAsync(nextPayload);
-      toast.success("Pedido atualizado");
+      await actions.updateStatusMutation.mutateAsync({ orderId: order.id, status });
+      toast.success("Status do pedido atualizado");
     } catch (error) {
-      toast.error(getErrorMessage(error, "Não foi possível atualizar o pedido."));
+      toast.error(getErrorMessage(error, "Nao foi possivel atualizar o pedido."));
     }
   };
 
   return (
-    <div className="rounded-[1.4rem] border p-4">
-      <div className="space-y-2">
+    <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+      <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="font-medium">
-              {getContactDisplayName(conversation.contact_name, conversation.contact_phone_number)}
-            </p>
-            <p className="text-sm text-muted-foreground">{formatPhoneNumber(conversation.contact_phone_number)}</p>
+            <p className="text-sm font-semibold text-white">{order.code}</p>
+            <p className="mt-1 text-sm text-slate-400">{order.customer_name ?? "Cliente nao informado"}</p>
           </div>
-          <Badge variant="neutral">#{conversation.id}</Badge>
+          <Badge variant="neutral">{order.fulfillment_type}</Badge>
         </div>
 
-        <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-          {conversation.last_message_preview ?? "Sem detalhes do pedido."}
-        </p>
+        <div className="space-y-1 text-sm text-slate-400">
+          <p>{formatPhoneNumber(order.customer_phone)}</p>
+          <p>{formatCurrencyBrl(order.total_amount)}</p>
+          <p>{order.payment_method ?? "Pagamento nao informado"}</p>
+          <p>{order.delivery_address ?? "Sem endereco"}</p>
+        </div>
 
-        <p className="text-xs text-muted-foreground">Última atualização: {formatDateTime(conversation.updated_at)}</p>
+        <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3 text-sm text-slate-300">
+          {order.items.length ? order.items.map((item) => <p key={item.id}>{item.quantity}x {item.product_name}</p>) : "Sem itens detalhados."}
+        </div>
 
-        {conversation.tags?.length ? (
-          <div className="flex flex-wrap gap-2">
-            {conversation.tags.map((tag) => (
-              <Badge key={tag} variant="neutral">
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        ) : null}
+        <div className="text-xs text-slate-500">
+          <p>Criado em {formatDateTime(order.created_at)}</p>
+          <p>
+            Impressao: {order.print_jobs.length ? `${order.print_jobs.length} registro(s)` : "aguardando trigger por status"}
+          </p>
+        </div>
 
-        <div className="flex flex-wrap gap-2 pt-2">
-          <Button size="sm" variant="outline" onClick={() => void moveTo("new")}>
-            Novo
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => void moveTo("confirmed")}>
+            Confirmar
           </Button>
-          <Button size="sm" variant="outline" onClick={() => void moveTo("preparing")}>
+          <Button size="sm" variant="outline" onClick={() => void moveTo("in_preparation")}>
             Preparo
           </Button>
-          <Button size="sm" variant="outline" onClick={() => void moveTo("delivery")}>
+          <Button size="sm" variant="outline" onClick={() => void moveTo("out_for_delivery")}>
             Entrega
           </Button>
-          <Button size="sm" variant="outline" onClick={() => void moveTo("finished")}>
-            Finalizar
+          <Button size="sm" variant="outline" onClick={() => void moveTo("ready_for_pickup")}>
+            Retirada
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => void moveTo("completed")}>
+            Concluir
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => void moveTo("cancelled")}>
+            Cancelar
           </Button>
         </div>
       </div>

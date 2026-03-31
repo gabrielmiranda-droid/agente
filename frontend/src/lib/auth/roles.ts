@@ -1,6 +1,6 @@
 import type { CurrentUser } from "@/types/auth";
 
-export type AppRole = "dev" | "attendant";
+export type AppRole = "dev" | "client";
 
 type RoleExperience = {
   label: string;
@@ -14,12 +14,12 @@ export function isDev(user?: Pick<CurrentUser, "role"> | null) {
 }
 
 export function isAttendant(user?: Pick<CurrentUser, "role"> | null) {
-  return user?.role === "attendant";
+  return user?.role === "client";
 }
 
 export function getRoleLabel(role?: string | null) {
   if (role === "dev") return "Painel Dev";
-  if (role === "attendant") return "Painel da Loja";
+  if (role === "client") return "Painel do Cliente";
   return "Usuario";
 }
 
@@ -35,10 +35,10 @@ export function getRoleExperience(role?: string | null): RoleExperience {
   }
 
   return {
-    label: "Painel da Loja",
-    sidebarTitle: "Central da Empresa",
+    label: "Painel do Cliente",
+    sidebarTitle: "Operacao da Empresa",
     sidebarDescription:
-      "Gerencie atendimento, operacao, produtos, horarios, FAQ e configuracoes do negocio sem linguagem tecnica.",
-    headerBadge: "Operacao da loja"
+      "Gerencie pedidos, atendimento, cardapio, estoque, financeiro e dados do negocio sem configuracoes tecnicas.",
+    headerBadge: "Painel cliente"
   };
 }

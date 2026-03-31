@@ -16,6 +16,7 @@ from app.api.routes.v1.companies import router as companies_router
 from app.api.routes.v1.conversations import router as conversations_router
 from app.api.routes.v1.knowledge import router as knowledge_router
 from app.api.routes.v1.metrics import router as metrics_router
+from app.api.routes.v1.operations import router as operations_router
 from app.api.routes.v1.promotions import router as promotions_router
 from app.api.routes.v1.users import router as users_router
 from app.api.routes.v1.webhooks import router as webhooks_router
@@ -100,6 +101,7 @@ def create_application() -> FastAPI:
     app.include_router(promotions_router, prefix=settings.api_v1_prefix)
     app.include_router(conversations_router, prefix=settings.api_v1_prefix)
     app.include_router(metrics_router, prefix=settings.api_v1_prefix)
+    app.include_router(operations_router, prefix=settings.api_v1_prefix)
     app.include_router(billing_router, prefix=settings.api_v1_prefix)
     app.include_router(webhooks_router, prefix=settings.api_v1_prefix)
     return app

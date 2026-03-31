@@ -68,6 +68,7 @@ class Conversation(Base):
     assigned_user = relationship("User", back_populates="assigned_conversations", foreign_keys=[assigned_user_id])
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
     handoffs = relationship("HumanHandoff", back_populates="conversation", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="conversation")
 
 
 class Message(Base):

@@ -16,5 +16,10 @@ export const queryKeys = {
   products: (companyId?: number) => ["products", companyId ?? "me"] as const,
   addons: (companyId?: number) => ["addons", companyId ?? "me"] as const,
   businessHours: (companyId?: number) => ["business-hours", companyId ?? "me"] as const,
-  promotions: (companyId?: number) => ["promotions", companyId ?? "me"] as const
+  promotions: (companyId?: number) => ["promotions", companyId ?? "me"] as const,
+  clientPanel: (companyId?: number) => ["client-panel", companyId ?? "me"] as const,
+  devPanel: ["dev-panel"] as const,
+  operationalOrders: (companyId?: number) => ["operational-orders", companyId ?? "me"] as const,
+  inventory: (companyId?: number) => ["inventory", companyId ?? "me"] as const,
+  financeSummary: (companyId?: number) => ["finance-summary", companyId ?? "me"] as const
 };
