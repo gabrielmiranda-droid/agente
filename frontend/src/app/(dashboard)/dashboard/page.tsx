@@ -48,6 +48,36 @@ function ClientDashboard({ companyId }: { companyId?: number }) {
         description="Visao direta da loja para pedidos, atendimento no WhatsApp, cardapio, estoque e faturamento."
       />
 
+      <section className="overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-r from-primary/12 via-amber-300/5 to-emerald-400/5 p-6">
+        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Cockpit operacional</p>
+            <h2 className="mt-3 text-2xl font-semibold text-white">Pedidos, WhatsApp e financeiro no mesmo painel.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+              Mantivemos o fluxo simples para a equipe operacional: acompanhar pedidos, alimentar a IA com dados do negocio e agir rapido na rotina da loja.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Inbox</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{panel.inbox_counts.open ?? 0}</p>
+              <p className="mt-1 text-sm text-slate-500">conversas em aberto</p>
+            </div>
+            <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Financeiro</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{formatCurrencyBrl(panel.finance_summary.total_sold)}</p>
+              <p className="mt-1 text-sm text-slate-500">vendas no periodo</p>
+            </div>
+            <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Catalogo</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{panel.catalog_summary.products ?? 0}</p>
+              <p className="mt-1 text-sm text-slate-500">produtos ativos para atendimento</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {panel.stats.map((stat, index) => {
           const Icon = clientIcons[index] ?? ShoppingBag;
@@ -189,6 +219,27 @@ function DevDashboard() {
         title="Governanca do SaaS"
         description="Visao administrativa e tecnica para clientes, instancias, billing, IA, observabilidade e limites."
       />
+
+      <section className="overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-r from-white/[0.04] to-primary/10 p-6">
+        <div className="grid gap-4 lg:grid-cols-4">
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Empresas</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{panel.company_breakdown.length}</p>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Tokens</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{panel.ai_usage.total_tokens}</p>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Custo IA</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{formatCurrencyBrl(panel.ai_usage.estimated_cost)}</p>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Planos</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{panel.plan_breakdown.length}</p>
+          </div>
+        </div>
+      </section>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {panel.global_stats.map((stat, index) => {

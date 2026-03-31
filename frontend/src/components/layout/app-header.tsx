@@ -46,34 +46,34 @@ export function AppHeader() {
     .map((segment) => segmentLabels[segment] ?? segment);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-stone-200/80 bg-white/85 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-white/8 bg-black/45 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
             {segments.map((segment, index) => (
               <div className="flex items-center gap-2" key={segment + index}>
                 {index > 0 ? <ChevronRight className="h-4 w-4" /> : null}
-                <span className={index === segments.length - 1 ? "font-medium text-slate-900" : ""}>{segment}</span>
+                <span className={index === segments.length - 1 ? "font-medium text-white" : ""}>{segment}</span>
               </div>
             ))}
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-orange-50 px-3 py-1 text-slate-900">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-white">
               {isDev(user) ? <Shield className="h-3.5 w-3.5 text-primary" /> : <Store className="h-3.5 w-3.5 text-primary" />}
               {roleExperience.headerBadge}
             </span>
-            <span className="font-medium text-slate-900">{focusedCompany?.name ?? "Conta ativa"}</span>
+            <span className="font-medium text-white">{focusedCompany?.name ?? "Conta ativa"}</span>
             <span className="text-slate-500">{getRoleLabel(user?.role)}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="hidden text-right md:block">
-            <p className="text-sm font-medium text-slate-900">{user?.name ?? "Usuario"}</p>
+            <p className="text-sm font-medium text-white">{user?.name ?? "Usuario"}</p>
             <p className="text-xs text-slate-500">{user?.email ?? "Sessao ativa"}</p>
           </div>
-          <Button variant="outline" onClick={logout} className="border-stone-300 bg-white text-slate-900 hover:bg-stone-100">
+          <Button variant="outline" onClick={logout} className="border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.08]">
             Sair
           </Button>
         </div>

@@ -19,11 +19,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="dashboard-grid flex min-h-screen bg-background text-foreground">
       <AppSidebar />
       <div className="flex min-h-screen flex-1 flex-col">
         <AppHeader />
-        <main className="dashboard-surface flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+        <main className="dashboard-surface relative flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
           <div className="page-shell">{children}</div>
         </main>
       </div>
