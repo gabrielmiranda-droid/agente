@@ -108,7 +108,7 @@ export default function ConversationsPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6">
+    <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
       <PageHeader
         eyebrow="Conversas"
         title="Atendimento da loja"
@@ -121,7 +121,7 @@ export default function ConversationsPage() {
         <StatCard title="Bot pausado" value={cards.paused} icon={PauseCircle} hint="Conversas com automação parada" />
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-6 overflow-hidden xl:h-[calc(100vh-18.5rem)] xl:grid-cols-[420px_minmax(0,1fr)]">
         <Card className="flex min-h-0 flex-col overflow-hidden">
           <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-5">
             <div className="space-y-1">
