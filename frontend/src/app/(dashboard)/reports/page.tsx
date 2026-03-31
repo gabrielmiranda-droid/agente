@@ -1,99 +1,47 @@
 "use client";
 
-import { BarChart3, CircleDollarSign, ClipboardList, MessageCircleMore } from "lucide-react";
+import Link from "next/link";
+import { ArrowRightLeft, WalletCards } from "lucide-react";
 
-import { StatCard } from "@/components/dashboard/stat-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { DataTable } from "@/components/shared/data-table";
-import { EmptyState } from "@/components/shared/empty-state";
-import { ErrorState } from "@/components/shared/error-state";
-import { LoadingState } from "@/components/shared/loading-state";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCompanyScope } from "@/hooks/use-company-scope";
-import { useConversations } from "@/hooks/use-conversations";
-import { useMetrics } from "@/hooks/use-metrics";
-import { formatCompactNumber, formatDate } from "@/lib/formatters";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function ReportsPage() {
-  const companyId = useCompanyScope();
-  const conversationsQuery = useConversations(companyId);
-  const metricsQuery = useMetrics(companyId);
-
-  if (conversationsQuery.isLoading || metricsQuery.isLoading) {
-    return <LoadingState label="Carregando relatórios..." description="Consolidando pedidos, mensagens e indicadores da loja." />;
-  }
-
-  if (conversationsQuery.error || metricsQuery.error) {
-    return (
-      <ErrorState
-        description="Não foi possível carregar os relatórios da loja."
-        onRetry={() => {
-          void conversationsQuery.refetch();
-          void metricsQuery.refetch();
-        }}
-      />
-    );
-  }
-
-  const conversations = conversationsQuery.data ?? [];
-  const metrics = metricsQuery.data ?? [];
-
-  const incomingMessages = metrics
-    .filter((item) => item.metric_name.includes("incoming"))
-    .reduce((acc, item) => acc + item.metric_value, 0);
-  const handoffs = metrics
-    .filter((item) => item.metric_name.includes("handoff"))
-    .reduce((acc, item) => acc + item.metric_value, 0);
-  const finishedOrders = conversations.filter((item) => item.status === "resolved").length;
-
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Relatórios"
-        title="Resultados da operação"
-        description="Acompanhe volume de pedidos, mensagens e indicadores básicos da loja em um relatório simples e direto."
+        eyebrow="Relatorios"
+        title="Relatorios consolidados"
+        description="Esta area foi incorporada ao modulo financeiro para reduzir duplicidade e manter a operacao mais simples."
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Pedidos no período" value={conversations.length} icon={ClipboardList} hint="Conversas tratadas como pedidos ativos" />
-        <StatCard title="Pedidos finalizados" value={finishedOrders} icon={BarChart3} hint="Pedidos marcados como concluídos" />
-        <StatCard title="Mensagens recebidas" value={formatCompactNumber(incomingMessages)} icon={MessageCircleMore} hint="Volume consolidado do período" />
-        <StatCard title="Faturamento simples" value="Em breve" icon={CircleDollarSign} hint="Depende do módulo completo de pedidos" />
-      </div>
-
-      <Card>
+      <Card className="border-white/8 bg-white/[0.03]">
         <CardHeader>
-          <CardTitle>Indicadores da loja</CardTitle>
-          <CardDescription>Leitura rápida da movimentação registrada pela operação.</CardDescription>
+          <CardTitle className="text-base text-white">Modulo reorganizado</CardTitle>
         </CardHeader>
-        <CardContent>
-          {metrics.length ? (
-            <DataTable
-              rowKey={(item) => `${item.metric_name}-${item.metric_date}`}
-              columns={[
-                { key: "date", header: "Data", cell: (item) => formatDate(item.metric_date) },
-                { key: "name", header: "Indicador", cell: (item) => item.metric_name },
-                { key: "value", header: "Valor", cell: (item) => formatCompactNumber(item.metric_value) }
-              ]}
-              data={metrics}
-            />
-          ) : (
-            <EmptyState
-              title="Sem dados por enquanto"
-              description="Os relatórios vão aparecer conforme sua loja receber mensagens e pedidos."
-            />
-          )}
-        </CardContent>
-      </Card>
+        <CardContent className="space-y-4 text-sm text-slate-300">
+          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <p className="font-medium text-white">O que mudou</p>
+            <p className="mt-2 leading-6 text-slate-400">
+              Indicadores de venda, ticket medio, formas de pagamento e produtos mais vendidos agora ficam em um unico lugar.
+            </p>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Atendimentos humanos</CardTitle>
-          <CardDescription>Quando a IA passa para uma pessoa, esse volume aparece aqui.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-semibold">{formatCompactNumber(handoffs)}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Quantidade de atendimentos assumidos manualmente pela equipe.</p>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild>
+              <Link href="/finance">
+                <WalletCards className="mr-2 h-4 w-4" />
+                Abrir financeiro
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/[0.06]">
+              <Link href="/dashboard">
+                <ArrowRightLeft className="mr-2 h-4 w-4" />
+                Voltar ao dashboard
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
