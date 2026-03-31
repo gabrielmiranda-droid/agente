@@ -1,5 +1,6 @@
 export type OperationalOrderStatus =
   | "new"
+  | "pending_confirmation"
   | "confirmed"
   | "in_preparation"
   | "out_for_delivery"
@@ -21,6 +22,7 @@ export type OrderPrintJob = {
   id: number;
   trigger_status: string;
   printer_target: string | null;
+  payload_text: string | null;
   printed: boolean;
   printed_at: string | null;
   created_at: string;

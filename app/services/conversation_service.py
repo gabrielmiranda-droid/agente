@@ -21,6 +21,8 @@ from app.services.idempotency_service import IdempotencyService
 from app.services.knowledge_service import KnowledgeService
 from app.services.message_queue_service import MessageQueueService
 from app.services.metrics_service import MetricsService
+from app.services.operations_service import OperationsService
+from app.services.order_flow_service import OrderFlowService
 from app.utils.helpers import build_delivery_system_prompt, is_supported_evolution_event, parse_evolution_message
 
 logger = get_logger(__name__)
@@ -37,6 +39,8 @@ class ConversationService:
         self.business_service = BusinessService(db)
         self.knowledge_service = KnowledgeService(db)
         self.metrics_service = MetricsService(db)
+        self.operations_service = OperationsService(db)
+        self.order_flow_service = OrderFlowService(db)
         self.idempotency_service = IdempotencyService()
         self.queue_service = MessageQueueService()
         self.openai_client = OpenAIClient()
@@ -187,12 +191,25 @@ class ConversationService:
         message.metadata_json = metadata
         self.db.flush()
 
+        instance = self.instance_repository.get_by_id(conversation.whatsapp_instance_id) if conversation.whatsapp_instance_id else None
+        automation_result = self._handle_order_automation(
+            company_id=company_id,
+            conversation=conversation,
+            message=message,
+            instance=instance,
+        )
+
+        if automation_result is not None:
+            metadata["processing_status"] = "completed"
+            message.metadata_json = metadata
+            self.db.commit()
+            return {"company_id": company_id, "message_id": message_id, "processed": True}
+
         reply = self._build_ai_reply(company_id, message.content, message.contact_id)
         send_ok = False
         provider_message_id: str | None = None
         raw_response: dict | str | None = None
 
-        instance = self.instance_repository.get_by_id(conversation.whatsapp_instance_id) if conversation.whatsapp_instance_id else None
         if instance:
             try:
                 send_ok, provider_message_id, raw_response = asyncio.run(
@@ -238,6 +255,119 @@ class ConversationService:
             },
         )
         return {"company_id": company_id, "message_id": message_id, "processed": True}
+
+    def _handle_order_automation(self, *, company_id: int, conversation, message, instance):
+        if instance is None:
+            return None
+
+        action = self.order_flow_service.extract_confirmation_action(message.content)
+        if action is not None:
+            action_name, order_id = action
+            order = self.operations_service.update_order_status(
+                company_id,
+                order_id,
+                "confirmed" if action_name == OrderFlowService.CONFIRM_ACTION else (
+                    "cancelled" if action_name == OrderFlowService.CANCEL_ACTION else "pending_confirmation"
+                ),
+            )
+            if action_name == OrderFlowService.CONFIRM_ACTION:
+                reply = self.order_flow_service.build_post_confirmation_message(order)
+            elif action_name == OrderFlowService.CANCEL_ACTION:
+                reply = self.order_flow_service.build_cancel_message(order)
+            else:
+                reply = self.order_flow_service.build_adjustment_message(order)
+
+            self._send_automated_outgoing_message(
+                company_id=company_id,
+                conversation=conversation,
+                instance=instance,
+                content=reply,
+                source_message_id=message.id,
+            )
+            return {"action": action_name, "order_id": order_id}
+
+        if not self.order_flow_service.should_offer_confirmation(message.content):
+            return None
+
+        draft_order = self.order_flow_service.build_or_update_draft_order(
+            company_id=company_id,
+            conversation=conversation,
+            contact=conversation.contact,
+            text=message.content,
+        )
+        if draft_order is None:
+            return None
+
+        summary = self.order_flow_service.build_confirmation_message(draft_order)
+        self._send_automated_outgoing_message(
+            company_id=company_id,
+            conversation=conversation,
+            instance=instance,
+            content=summary,
+            source_message_id=message.id,
+        )
+        self._send_confirmation_list(
+            company_id=company_id,
+            conversation=conversation,
+            instance=instance,
+            order=draft_order,
+            source_message_id=message.id,
+        )
+        return {"action": "draft_confirmation", "order_id": draft_order.id}
+
+    def _send_automated_outgoing_message(self, *, company_id: int, conversation, instance, content: str, source_message_id: int):
+        success, provider_message_id, raw_response = asyncio.run(
+            self.evolution_client.send_text_message(
+                instance=instance,
+                number=conversation.contact.phone_number,
+                text=content,
+            )
+        )
+        self.conversation_repository.create_message(
+            company_id=company_id,
+            contact_id=conversation.contact_id,
+            conversation_id=conversation.id,
+            whatsapp_instance_id=conversation.whatsapp_instance_id,
+            direction="outgoing",
+            content=content,
+            provider_message_id=provider_message_id,
+            ai_generated=True,
+            metadata_json={
+                "delivery_success": success,
+                "provider_response": raw_response,
+                "source_message_id": source_message_id,
+            },
+        )
+        self.metrics_service.track(company_id, "outgoing_messages")
+
+    def _send_confirmation_list(self, *, company_id: int, conversation, instance, order, source_message_id: int):
+        payload = self.order_flow_service.build_confirmation_list_payload(order)
+        success, provider_message_id, raw_response = asyncio.run(
+            self.evolution_client.send_list_message(
+                instance=instance,
+                number=conversation.contact.phone_number,
+                payload=payload,
+            )
+        )
+        self.conversation_repository.create_message(
+            company_id=company_id,
+            contact_id=conversation.contact_id,
+            conversation_id=conversation.id,
+            whatsapp_instance_id=conversation.whatsapp_instance_id,
+            direction="outgoing",
+            content=f"Lista de confirmacao do pedido {order.code}",
+            provider_message_id=provider_message_id,
+            ai_generated=True,
+            metadata_json={
+                "delivery_success": success,
+                "provider_response": raw_response,
+                "source_message_id": source_message_id,
+                "message_type": "interactive_list",
+                "order_id": order.id,
+                "list_payload": payload,
+            },
+        )
+        self.metrics_service.track(company_id, "outgoing_messages")
 
     def _build_ai_reply(self, company_id: int, incoming_text: str, contact_id: int) -> str:
         if not incoming_text:

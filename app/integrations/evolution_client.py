@@ -64,6 +64,56 @@ class EvolutionClient:
         provider_message_id = self._extract_message_id(raw_response)
         return True, provider_message_id, raw_response
 
+    async def send_list_message(
+        self,
+        *,
+        instance: WhatsAppInstance,
+        number: str,
+        payload: dict[str, Any],
+    ) -> tuple[bool, str | None, dict[str, Any] | str | None]:
+        normalized_number = normalize_phone_number(number)
+        if not normalized_number:
+            return False, None, {"detail": "Numero invalido"}
+
+        url = f"{instance.api_base_url.rstrip('/')}/message/sendList/{instance.instance_name}"
+        sections = payload.get("sections") or []
+        request_payload = {
+            "number": normalized_number,
+            "title": clean_text(payload.get("title") or "Confirmacao de pedido"),
+            "description": truncate_text(clean_text(payload.get("description") or ""), self.max_length),
+            "buttonText": clean_text(payload.get("button_text") or "Escolher"),
+            "footerText": clean_text(payload.get("footer_text") or ""),
+            "sections": sections,
+        }
+        headers = {"Content-Type": "application/json", "apikey": instance.api_key}
+
+        logger.info(
+            "evolution_list_send_started",
+            extra={
+                "instance_name": instance.instance_name,
+                "number": mask_phone_number(normalized_number),
+            },
+        )
+
+        try:
+            response = await self.http_client.post_json(
+                url=url,
+                headers=headers,
+                json_body=request_payload,
+                operation_name="evolution_send_list",
+            )
+        except (httpx.HTTPError, RuntimeError) as exc:
+            logger.exception("evolution_list_send_failed")
+            raise ExternalServiceError("Falha ao enviar lista pela Evolution API") from exc
+
+        try:
+            raw_response = response.json()
+        except ValueError:
+            raw_response = response.text
+
+        provider_message_id = self._extract_message_id(raw_response)
+        return True, provider_message_id, raw_response
+
     @staticmethod
     def _extract_message_id(raw_response: dict[str, Any] | str | None) -> str:
         if isinstance(raw_response, dict):

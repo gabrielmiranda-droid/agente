@@ -52,28 +52,10 @@ class OperationsService:
 
         order.status = status
         if status == "confirmed":
-            has_job = any(job.trigger_status == "confirmed" for job in order.print_jobs)
-            if not has_job:
-                payload_lines = [
-                    f"Pedido {order.code}",
-                    f"Cliente: {order.customer_name or 'Nao informado'}",
-                    f"Entrega: {order.fulfillment_type}",
-                    "Itens:",
-                ]
-                for item in order.items:
-                    payload_lines.append(f"- {item.quantity}x {item.product_name}")
-                payload_lines.append(f"Total: R$ {order.total_amount:.2f}")
-                self.db.add(
-                    OrderPrintJob(
-                        company_id=company_id,
-                        order_id=order.id,
-                        trigger_status="confirmed",
-                        payload_text="\n".join(payload_lines),
-                        printed=False,
-                    )
-                )
+            self._ensure_confirmed_print_jobs(order)
 
         self.db.commit()
+        self.db.expire_all()
         refreshed = self.db.scalar(
             select(Order)
             .where(Order.company_id == company_id, Order.id == order_id)
@@ -81,6 +63,119 @@ class OperationsService:
         )
         assert refreshed is not None
         return refreshed
+
+    def _ensure_confirmed_print_jobs(self, order: Order) -> None:
+        existing_targets = {
+            job.printer_target
+            for job in order.print_jobs
+            if job.trigger_status == "confirmed"
+        }
+
+        for target in self._resolve_print_targets(order):
+            if target in existing_targets:
+                continue
+            self.db.add(
+                OrderPrintJob(
+                    company_id=order.company_id,
+                    order_id=order.id,
+                    trigger_status="confirmed",
+                    printer_target=target,
+                    payload_text=self._build_print_payload(order, target),
+                    printed=False,
+                )
+            )
+
+    def _resolve_print_targets(self, order: Order) -> list[str]:
+        targets = ["cashier", "kitchen"]
+        if order.fulfillment_type == "delivery":
+            targets.append("courier")
+        return targets
+
+    def _build_print_payload(self, order: Order, printer_target: str) -> str:
+        target_titles = {
+            "cashier": "NOTA DO CAIXA",
+            "kitchen": "COMANDA DA COZINHA",
+            "courier": "NOTA DO MOTOBOY",
+        }
+        fulfillment_labels = {
+            "delivery": "Entrega",
+            "pickup": "Retirada",
+        }
+        payment_label = order.payment_method or "Nao informado"
+        customer_label = order.customer_name or "Nao informado"
+        phone_label = order.customer_phone or "Nao informado"
+        address_label = order.delivery_address or "Nao informado"
+        neighborhood_label = order.neighborhood or "Nao informado"
+        lines = [
+            target_titles.get(printer_target, "IMPRESSAO DE PEDIDO"),
+            f"Pedido: {order.code}",
+            f"Cliente: {customer_label}",
+            f"Telefone: {phone_label}",
+            f"Tipo: {fulfillment_labels.get(order.fulfillment_type, order.fulfillment_type)}",
+        ]
+
+        if printer_target in {"cashier", "courier"} and order.fulfillment_type == "delivery":
+            lines.extend(
+                [
+                    f"Endereco: {address_label}",
+                    f"Bairro: {neighborhood_label}",
+                ]
+            )
+
+        if printer_target == "courier":
+            lines.extend(
+                [
+                    "Destino: entrega externa",
+                    "Levar pedido ao cliente com conferencia final antes da saida.",
+                ]
+            )
+
+        lines.append("Itens:")
+        for item in order.items:
+            item_line = f"- {item.quantity}x {item.product_name}"
+            if printer_target == "cashier":
+                item_line = f"{item_line} | {self._format_currency(item.total_price)}"
+            lines.append(item_line)
+
+            addons = item.addons_json or []
+            for addon in addons:
+                addon_name = addon.get("name") if isinstance(addon, dict) else None
+                addon_price = addon.get("price") if isinstance(addon, dict) else None
+                addon_line = f"  + {addon_name or 'Adicional'}"
+                if printer_target == "cashier" and addon_price is not None:
+                    addon_line = f"{addon_line} | {self._format_currency(addon_price)}"
+                lines.append(addon_line)
+
+            if item.notes:
+                lines.append(f"  Obs item: {item.notes}")
+
+        if order.notes:
+            lines.append(f"Observacoes: {order.notes}")
+
+        if printer_target == "cashier":
+            lines.extend(
+                [
+                    f"Subtotal: {self._format_currency(order.subtotal)}",
+                    f"Taxa de entrega: {self._format_currency(order.delivery_fee)}",
+                    f"Desconto: {self._format_currency(order.discount_amount)}",
+                    f"Total: {self._format_currency(order.total_amount)}",
+                    f"Pagamento: {payment_label}",
+                ]
+            )
+        elif printer_target == "courier":
+            lines.extend(
+                [
+                    f"Total do pedido: {self._format_currency(order.total_amount)}",
+                    f"Pagamento: {payment_label}",
+                ]
+            )
+
+        lines.append(f"Criado em: {order.created_at.strftime('%d/%m/%Y %H:%M')}")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _format_currency(value: Decimal | float | int | None) -> str:
+        return f"R$ {_float(value):.2f}"
 
     def get_finance_summary(self, company_id: int) -> FinanceSummaryResponse:
         today = datetime.now(UTC).date()
@@ -139,7 +234,7 @@ class OperationsService:
         ) or 0
         today_orders = [order for order in orders if order.created_at.date() == today and order.status != "cancelled"]
         month_orders = [order for order in orders if order.created_at.date() >= month_start and order.status != "cancelled"]
-        in_progress_statuses = {"confirmed", "in_preparation", "out_for_delivery", "ready_for_pickup"}
+        in_progress_statuses = {"pending_confirmation", "confirmed", "in_preparation", "out_for_delivery", "ready_for_pickup"}
         completed_orders = [order for order in today_orders if order.status == "completed"]
         in_progress_orders = [order for order in today_orders if order.status in in_progress_statuses]
         daily_revenue = sum(_float(order.total_amount) for order in today_orders)

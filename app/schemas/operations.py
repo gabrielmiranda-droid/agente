@@ -21,6 +21,7 @@ class OrderPrintJobResponse(BaseModel):
     id: int
     trigger_status: str
     printer_target: str | None
+    payload_text: str | None
     printed: bool
     printed_at: datetime | None
     created_at: datetime
@@ -53,7 +54,7 @@ class OrderResponse(BaseModel):
 
 
 class OrderStatusUpdate(BaseModel):
-    status: str = Field(pattern="^(new|confirmed|in_preparation|out_for_delivery|ready_for_pickup|completed|cancelled)$")
+    status: str = Field(pattern="^(new|pending_confirmation|confirmed|in_preparation|out_for_delivery|ready_for_pickup|completed|cancelled)$")
 
 
 class ClientStatItem(BaseModel):

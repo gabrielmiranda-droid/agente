@@ -17,6 +17,7 @@ import type { OperationalOrder, OperationalOrderStatus } from "@/types/operation
 
 const columns: Array<{ status: OperationalOrderStatus; title: string; description: string }> = [
   { status: "new", title: "Novo", description: "Pedido recebido e aguardando confirmacao." },
+  { status: "pending_confirmation", title: "Aguardando cliente", description: "Resumo enviado e aguardando confirmacao do cliente." },
   { status: "confirmed", title: "Confirmado", description: "Pedido validado e pronto para imprimir." },
   { status: "in_preparation", title: "Em preparo", description: "Cozinha ou separacao em andamento." },
   { status: "out_for_delivery", title: "Saiu para entrega", description: "Pedido em rota." },
@@ -88,6 +89,7 @@ function OrderColumn({
 function OrderCard({ order }: { order: OperationalOrder }) {
   const companyId = useCompanyScope();
   const actions = useOperationalOrderActions(companyId);
+  const printTargets = order.print_jobs.map((job) => getPrintTargetLabel(job.printer_target));
 
   const moveTo = async (status: OperationalOrderStatus) => {
     try {
@@ -125,7 +127,27 @@ function OrderCard({ order }: { order: OperationalOrder }) {
           <p>
             Impressao: {order.print_jobs.length ? `${order.print_jobs.length} registro(s)` : "aguardando trigger por status"}
           </p>
+          {order.print_jobs.length ? <p>Destinos: {printTargets.join(", ")}</p> : null}
         </div>
+
+        {order.print_jobs.length ? (
+          <div className="space-y-2 rounded-xl border border-white/8 bg-white/[0.02] p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Notas geradas</p>
+            <div className="space-y-2">
+              {order.print_jobs.map((job) => (
+                <div key={job.id} className="rounded-xl border border-white/8 bg-black/20 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-white">{getPrintTargetLabel(job.printer_target)}</p>
+                    <Badge variant={job.printed ? "success" : "neutral"}>{job.printed ? "Impresso" : "Pendente"}</Badge>
+                  </div>
+                  <pre className="whitespace-pre-wrap break-words text-xs leading-5 text-slate-400">
+                    {job.payload_text ?? "Sem payload de impressao."}
+                  </pre>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => void moveTo("confirmed")}>
@@ -150,4 +172,11 @@ function OrderCard({ order }: { order: OperationalOrder }) {
       </div>
     </div>
   );
+}
+
+function getPrintTargetLabel(target: string | null) {
+  if (target === "cashier") return "Caixa";
+  if (target === "kitchen") return "Cozinha";
+  if (target === "courier") return "Motoboy";
+  return "Impressao";
 }

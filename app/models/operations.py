@@ -89,7 +89,7 @@ class OrderItem(Base):
 class OrderPrintJob(Base):
     __tablename__ = "order_print_jobs"
     __table_args__ = (
-        UniqueConstraint("company_id", "order_id", "trigger_status", name="uq_order_print_jobs_status"),
+        UniqueConstraint("company_id", "order_id", "trigger_status", "printer_target", name="uq_order_print_jobs_status_target"),
         Index("ix_order_print_jobs_company_created", "company_id", "created_at"),
     )
 
@@ -223,4 +223,3 @@ class AIUsageMetric(Base):
     estimated_cost: Mapped[float] = mapped_column(Numeric(10, 4), default=0)
     source: Mapped[str | None] = mapped_column(String(120), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, server_default=func.now())
-
