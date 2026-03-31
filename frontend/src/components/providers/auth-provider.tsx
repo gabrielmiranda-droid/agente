@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refreshUser();
-  }, []);
+  }, [pathname]);
 
   const login = async (payload: { email: string; password: string }) => {
     const tokens = await loginRequest(payload);
@@ -89,4 +89,3 @@ export function useAuth() {
   }
   return context;
 }
-

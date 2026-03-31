@@ -10,7 +10,7 @@ export function destroySession() {
 }
 
 export function hasSession() {
-  return Boolean(getAccessToken());
+  return Boolean(getAccessToken() || getRefreshToken());
 }
 
 export function readSessionTokens() {
@@ -19,4 +19,3 @@ export function readSessionTokens() {
     refreshToken: getRefreshToken()
   };
 }
-

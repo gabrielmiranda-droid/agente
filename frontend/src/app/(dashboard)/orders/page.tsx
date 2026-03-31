@@ -47,10 +47,12 @@ export default function OrdersPage() {
         description="Fluxo claro por status, com impressao disparada a partir da confirmacao do pedido e historico tecnico de impressao."
       />
 
-      <div className="grid gap-4 xl:grid-cols-4 2xl:grid-cols-7">
-        {columns.map((column) => (
-          <OrderColumn key={column.status} column={column} orders={orders.filter((order) => order.status === column.status)} />
-        ))}
+      <div className="overflow-x-auto pb-2">
+        <div className="grid min-w-[1960px] gap-6 xl:min-w-0 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-7">
+          {columns.map((column) => (
+            <OrderColumn key={column.status} column={column} orders={orders.filter((order) => order.status === column.status)} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -64,13 +66,13 @@ function OrderColumn({
   orders: OperationalOrder[];
 }) {
   return (
-    <Card className="border-white/8 bg-white/[0.03]">
-      <CardHeader>
+    <Card className="min-h-full border-white/8 bg-white/[0.03]">
+      <CardHeader className="pb-5">
         <CardTitle className="flex items-center justify-between gap-3 text-white">
           <span>{column.title}</span>
           <Badge variant="neutral">{orders.length}</Badge>
         </CardTitle>
-        <p className="text-sm leading-6 text-slate-500">{column.description}</p>
+        <p className="max-w-[22ch] text-sm leading-6 text-slate-500">{column.description}</p>
       </CardHeader>
       <CardContent className="space-y-3">
         {orders.length ? (
