@@ -27,10 +27,10 @@ export function getRoleExperience(role?: string | null): RoleExperience {
   if (role === "dev") {
     return {
       label: "Painel Dev",
-      sidebarTitle: "Admin Master do SaaS",
+      sidebarTitle: "Controle do SaaS",
       sidebarDescription:
-        "Controle empresas, canais, IA, cobranca, metricas e suporte tecnico da plataforma em um unico console.",
-      headerBadge: "Admin master"
+        "Gerencie empresas, acessos, canais, IA e billing sem misturar o painel tecnico com a operacao do cliente.",
+      headerBadge: "Painel dev"
     };
   }
 

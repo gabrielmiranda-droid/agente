@@ -8,13 +8,11 @@ import {
   MessageSquareText,
   MessagesSquare,
   Package,
-  Settings2,
   ShoppingBag,
   Store,
   Tags,
   Users2,
-  WalletCards,
-  Waypoints
+  WalletCards
 } from "lucide-react";
 
 import type { AppRole } from "@/lib/auth/roles";
@@ -39,13 +37,11 @@ export const dashboardNavigation = [
     items: [
       { title: "Dashboard", href: "/dashboard", icon: Gauge, roles: ["dev"] as AppRole[] },
       { title: "Empresas", href: "/companies", icon: Building2, roles: ["dev"] as AppRole[] },
-      { title: "Usuarios", href: "/users", icon: Users2, roles: ["dev"] as AppRole[] },
+      { title: "Acessos", href: "/users", icon: Users2, roles: ["dev"] as AppRole[] },
       { title: "WhatsApp", href: "/whatsapp", icon: MessageSquareText, roles: ["dev"] as AppRole[] },
       { title: "IA / Tokens", href: "/agents", icon: Bot, roles: ["dev"] as AppRole[] },
       { title: "Billing", href: "/billing", icon: CreditCard, roles: ["dev"] as AppRole[] },
-      { title: "Logs", href: "/logs", icon: Waypoints, roles: ["dev"] as AppRole[] },
-      { title: "Metricas", href: "/metrics", icon: WalletCards, roles: ["dev"] as AppRole[] },
-      { title: "Configuracoes", href: "/settings", icon: Settings2, roles: ["dev"] as AppRole[] }
+      { title: "Resumo", href: "/metrics", icon: WalletCards, roles: ["dev"] as AppRole[] }
     ]
   }
 ] as const;

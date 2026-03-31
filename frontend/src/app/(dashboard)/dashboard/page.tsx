@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bot, Building2, MessageSquareText, Package, Phone, ShoppingBag, WalletCards, Waypoints } from "lucide-react";
+import { Bot, Building2, MessageSquareText, Package, Phone, ShoppingBag, Users2, WalletCards, Waypoints } from "lucide-react";
 
 import { StatCard } from "@/components/dashboard/stat-card";
 import { PageHeader } from "@/components/layout/page-header";
@@ -18,7 +18,7 @@ import { isDev } from "@/lib/auth/roles";
 import { formatCurrencyBrl, formatPhoneNumber } from "@/lib/formatters";
 
 const clientIcons = [ShoppingBag, Waypoints, ShoppingBag, WalletCards, WalletCards, MessageSquareText, Phone, Bot];
-const devIcons = [Building2, MessageSquareText, Bot, Waypoints, WalletCards, Package];
+const devIcons = [Building2, Users2, MessageSquareText, Bot];
 
 function formatStatValue(label: string, value: string | number) {
   if (typeof value === "number" && /faturamento|custo/i.test(label)) {
@@ -54,7 +54,7 @@ function ClientDashboard({ companyId }: { companyId?: number }) {
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Cockpit operacional</p>
             <h2 className="mt-3 text-2xl font-semibold text-white">Pedidos, WhatsApp e financeiro no mesmo painel.</h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-              Mantivemos o fluxo simples para a equipe operacional: acompanhar pedidos, alimentar a IA com dados do negocio e agir rapido na rotina da loja.
+              O painel do cliente continua simples e direto: acompanhar pedidos, alimentar a IA com dados do negocio e agir rapido na rotina da loja.
             </p>
           </div>
 
@@ -203,7 +203,7 @@ function DevDashboard() {
   const panelQuery = useDevPanel();
 
   if (panelQuery.isLoading) {
-    return <LoadingState label="Carregando governanca..." description="Consolidando empresas, canais e consumo de IA." />;
+    return <LoadingState label="Carregando painel dev..." description="Buscando empresas, acessos, canais e consumo de IA." />;
   }
 
   if (panelQuery.error || !panelQuery.data) {
@@ -211,84 +211,94 @@ function DevDashboard() {
   }
 
   const panel = panelQuery.data;
+  const keyStats = panel.global_stats.slice(0, 4);
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Painel dev"
-        title="Governanca do SaaS"
-        description="Visao administrativa e tecnica para clientes, instancias, billing, IA, observabilidade e limites."
+        title="Controle do SaaS"
+        description="Painel dev reavaliado para ficar mais enxuto: empresas, acessos, WhatsApp, IA e billing como foco principal."
       />
 
       <section className="overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-r from-white/[0.04] to-primary/10 p-6">
-        <div className="grid gap-4 lg:grid-cols-4">
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Empresas</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{panel.company_breakdown.length}</p>
+        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Painel dev simplificado</p>
+            <h2 className="mt-3 text-2xl font-semibold text-white">Menos ruido tecnico, mais controle operacional do SaaS.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+              A prioridade agora fica em acompanhar empresas, liberar acesso, validar canais, medir uso de IA e manter billing sob controle. Itens secundarios saem do foco do menu principal.
+            </p>
           </div>
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Tokens</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{panel.ai_usage.total_tokens}</p>
-          </div>
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Custo IA</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{formatCurrencyBrl(panel.ai_usage.estimated_cost)}</p>
-          </div>
-          <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Planos</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{panel.plan_breakdown.length}</p>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Empresas</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{panel.company_breakdown.length}</p>
+              <p className="mt-1 text-sm text-slate-500">contas cadastradas</p>
+            </div>
+            <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">IA</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{formatCurrencyBrl(panel.ai_usage.estimated_cost)}</p>
+              <p className="mt-1 text-sm text-slate-500">custo estimado acumulado</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {panel.global_stats.map((stat, index) => {
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {keyStats.map((stat, index) => {
           const Icon = devIcons[index] ?? Building2;
           return <StatCard key={stat.label} title={stat.label} value={formatStatValue(stat.label, stat.value)} icon={Icon} hint={stat.hint} />;
         })}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="border-white/8 bg-white/[0.03]">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base text-white">Empresas e operacao</CardTitle>
+            <CardTitle className="text-base text-white">Empresas e status</CardTitle>
             <Button asChild variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/[0.06]">
               <Link href="/companies">Abrir empresas</Link>
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {panel.company_breakdown.map((company) => (
-              <div key={String(company.company_id)} className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-white">{String(company.name)}</p>
-                    <p className="mt-1 text-sm text-slate-400">
-                      {String(company.connected_instances)}/{String(company.total_instances)} canal(is) conectados • {String(company.active_agents)} agente(s)
-                    </p>
+            {panel.company_breakdown.length ? (
+              panel.company_breakdown.map((company) => (
+                <div key={String(company.company_id)} className="rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{String(company.name)}</p>
+                      <p className="mt-1 text-sm text-slate-400">
+                        {String(company.connected_instances)}/{String(company.total_instances)} canal(is) conectados • {String(company.active_agents)} agente(s)
+                      </p>
+                    </div>
+                    <Badge variant={company.status === "active" ? "success" : "warning"}>{String(company.status)}</Badge>
                   </div>
-                  <Badge variant={company.status === "active" ? "success" : "warning"}>{String(company.status)}</Badge>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <EmptyState title="Sem empresas" description="As contas cadastradas do SaaS aparecerao aqui." />
+            )}
           </CardContent>
         </Card>
 
         <div className="space-y-6">
           <Card className="border-white/8 bg-white/[0.03]">
-            <CardHeader>
-              <CardTitle className="text-base text-white">Uso de IA</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base text-white">Acesso rapido</CardTitle>
+              <Button asChild variant="outline" className="border-white/10 bg-transparent text-white hover:bg-white/[0.06]">
+                <Link href="/users">Abrir acessos</Link>
+              </Button>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-slate-300">
-              <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <p className="font-medium text-white">Tokens registrados</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{panel.ai_usage.total_tokens}</p>
+            <CardContent className="space-y-3">
+              <div className="rounded-2xl border border-white/8 bg-black/20 p-4 text-sm text-slate-300">
+                <p className="font-medium text-white">Painel dev reorganizado</p>
+                <p className="mt-2 leading-6 text-slate-400">
+                  Empresas, acessos, canais, IA e billing continuam no centro. Itens como logs e configuracoes saem do menu principal para nao poluir a operacao administrativa.
+                </p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <p className="font-medium text-white">Custo estimado</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{formatCurrencyBrl(panel.ai_usage.estimated_cost)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                <p className="font-medium text-white">Modelos em uso</p>
+                <p className="text-sm font-medium text-white">Modelos em uso</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {Object.entries(panel.ai_usage.models).map(([model, count]) => (
                     <Badge key={model} variant="neutral">
@@ -297,20 +307,17 @@ function DevDashboard() {
                   ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-white/8 bg-white/[0.03]">
-            <CardHeader>
-              <CardTitle className="text-base text-white">Planos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {panel.plan_breakdown.map((plan) => (
-                <div key={plan.plan} className="flex items-center justify-between rounded-2xl border border-white/8 bg-black/20 p-4 text-sm text-slate-300">
-                  <span>{plan.plan}</span>
-                  <strong className="text-white">{plan.companies}</strong>
+              <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+                <p className="text-sm font-medium text-white">Distribuicao de planos</p>
+                <div className="mt-3 space-y-2">
+                  {panel.plan_breakdown.map((plan) => (
+                    <div key={plan.plan} className="flex items-center justify-between text-sm text-slate-300">
+                      <span>{plan.plan}</span>
+                      <strong className="text-white">{plan.companies}</strong>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </CardContent>
           </Card>
         </div>

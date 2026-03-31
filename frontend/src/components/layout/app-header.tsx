@@ -24,8 +24,8 @@ const segmentLabels: Record<string, string> = {
   agents: "IA / Tokens",
   billing: "Billing",
   logs: "Logs",
-  metrics: "Metricas",
-  users: "Usuarios"
+  metrics: "Resumo",
+  users: "Acessos"
 };
 
 export function AppHeader() {
