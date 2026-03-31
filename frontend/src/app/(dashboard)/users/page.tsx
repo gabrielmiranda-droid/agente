@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { UserForm } from "@/components/forms/user-form";
@@ -13,7 +13,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateUser, useUsers } from "@/hooks/use-users";
+import { useCreateUser, useDeleteUser, useUsers } from "@/hooks/use-users";
 import { useCompanyScope } from "@/hooks/use-company-scope";
 import { getRoleLabel, isDev } from "@/lib/auth/roles";
 import { getErrorMessage } from "@/lib/errors";
@@ -24,6 +24,7 @@ export default function UsersPage() {
   const companyId = useCompanyScope();
   const usersQuery = useUsers(companyId);
   const createMutation = useCreateUser(companyId);
+  const deleteMutation = useDeleteUser(companyId);
   const devMode = isDev(user);
 
   if (usersQuery.isLoading) {
@@ -60,7 +61,6 @@ export default function UsersPage() {
                 </DialogDescription>
               </DialogHeader>
               <UserForm
-                canCreateDev={devMode}
                 loading={createMutation.isPending}
                 onSubmit={async (values) => {
                   try {
@@ -88,7 +88,31 @@ export default function UsersPage() {
               header: "Status",
               cell: (item) => <Badge variant={item.is_active ? "success" : "neutral"}>{item.is_active ? "Ativo" : "Inativo"}</Badge>
             },
-            { key: "created", header: "Criado em", cell: (item) => formatDate(item.created_at) }
+            { key: "created", header: "Criado em", cell: (item) => formatDate(item.created_at) },
+            {
+              key: "actions",
+              header: "Acoes",
+              cell: (item) => (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="text-rose-300 hover:bg-rose-500/10 hover:text-rose-200"
+                  onClick={async () => {
+                    const confirmed = window.confirm(`Excluir o usuario ${item.name}?`);
+                    if (!confirmed) return;
+                    try {
+                      await deleteMutation.mutateAsync(item.id);
+                      toast.success("Usuario excluido");
+                    } catch (error) {
+                      toast.error(getErrorMessage(error, "Nao foi possivel excluir o usuario."));
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )
+            }
           ]}
           data={usersQuery.data}
         />

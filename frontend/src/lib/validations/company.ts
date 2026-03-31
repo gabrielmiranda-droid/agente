@@ -14,7 +14,7 @@ export const companySchema = z.object({
 export const companyCreateSchema = z.object({
   company_name: z.string().min(2, "Informe o nome da empresa"),
   company_slug: z.string().min(2, "Informe o slug da empresa"),
-  dev_name: z.string().min(2, "Informe o nome do administrador"),
+  dev_name: z.string().min(2, "Informe o nome do cliente"),
   dev_email: z.string().email("Informe um e-mail valido"),
   dev_password: z.string().min(8, "A senha precisa ter pelo menos 8 caracteres")
 });

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_company_id, require_dev, require_roles
+from app.core.exceptions import ValidationError
 from app.db.session import get_db
 from app.repositories.company_repository import CompanyRepository
 from app.schemas.auth import RegisterCompanyRequest
@@ -71,3 +72,15 @@ def update_company_by_id(
 ) -> CompanyResponse:
     company = CompanyService(db).update_company(company_id, payload)
     return CompanyResponse.model_validate(company)
+
+
+@router.delete("/{company_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_company_by_id(
+    company_id: int,
+    current_company_id: int = Depends(get_current_company_id),
+    _: object = Depends(require_dev),
+    db: Session = Depends(get_db),
+) -> None:
+    if company_id == current_company_id:
+        raise ValidationError("Nao e permitido excluir a propria empresa logada")
+    CompanyService(db).delete_company(company_id)

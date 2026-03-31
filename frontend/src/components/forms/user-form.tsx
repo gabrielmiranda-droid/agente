@@ -10,12 +10,10 @@ import { userSchema, type UserSchema } from "@/lib/validations/user";
 
 export function UserForm({
   onSubmit,
-  loading = false,
-  canCreateDev = false
+  loading = false
 }: {
   onSubmit: (values: UserSchema) => Promise<void>;
   loading?: boolean;
-  canCreateDev?: boolean;
 }) {
   const form = useForm<UserSchema>({
     resolver: zodResolver(userSchema),
@@ -31,23 +29,23 @@ export function UserForm({
     <form className="space-y-5" onSubmit={form.handleSubmit((values) => onSubmit(values))}>
       <FormField
         label="Nome"
-        description="Nome exibido no histórico, nas atribuições e na rotina da empresa."
+        description="Nome exibido no dia a dia da operacao da empresa."
         error={form.formState.errors.name?.message}
       >
-        <Input {...form.register("name")} placeholder="Nome do usuário" />
+        <Input {...form.register("name")} placeholder="Nome do cliente" />
       </FormField>
 
       <FormField
         label="E-mail"
-        description="Usado para login e comunicação interna da operação."
+        description="Usado para login no painel do cliente."
         error={form.formState.errors.email?.message}
       >
-        <Input {...form.register("email")} placeholder="email@empresa.com" />
+        <Input {...form.register("email")} placeholder="cliente@empresa.com" />
       </FormField>
 
       <FormField
         label="Senha"
-        description="Defina uma senha inicial com no mínimo 8 caracteres."
+        description="Defina uma senha inicial com no minimo 8 caracteres."
         error={form.formState.errors.password?.message}
       >
         <Input type="password" {...form.register("password")} placeholder="********" />
@@ -55,11 +53,7 @@ export function UserForm({
 
       <FormField
         label="Perfil"
-        description={
-          canCreateDev
-            ? "Admin Master tem acesso completo. Operação da Empresa fica restrita ao dia a dia da própria empresa."
-            : "A empresa pode criar apenas usuários operacionais para atendimento e gestão do negócio."
-        }
+        description="O painel master cria apenas usuarios cliente para a operacao da empresa."
         error={form.formState.errors.role?.message}
       >
         <select
@@ -67,12 +61,11 @@ export function UserForm({
           {...form.register("role")}
         >
           <option value="client">Cliente Operacional</option>
-          {canCreateDev ? <option value="dev">Admin Master</option> : null}
         </select>
       </FormField>
 
       <Button className="w-full" type="submit" disabled={loading}>
-        {loading ? "Salvando usuário..." : "Salvar usuário"}
+        {loading ? "Salvando usuario..." : "Salvar usuario"}
       </Button>
     </form>
   );

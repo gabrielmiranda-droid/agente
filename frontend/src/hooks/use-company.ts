@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { createCompany, getCompany, getCompanies, updateCompany, updateCompanyById } from "@/lib/api/companies";
+import { createCompany, deleteCompany, getCompany, getCompanies, updateCompany, updateCompanyById } from "@/lib/api/companies";
 import { queryKeys } from "@/lib/query-keys";
 
 export function useCompany(companyId?: number) {
@@ -42,6 +42,16 @@ export function useUpdateCompanyById() {
       updateCompanyById(companyId, payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.company() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.companies });
+    }
+  });
+}
+
+export function useDeleteCompany() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteCompany,
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.companies });
     }
   });

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_role_name, require_roles, resolve_company_id
+from app.core.dependencies import get_current_user, require_roles, resolve_company_id
 from app.core.exceptions import ValidationError
-from app.core.roles import ROLE_ATTENDANT, ROLE_DEV, is_dev_role, normalize_role_name
+from app.core.roles import ROLE_ATTENDANT, ROLE_CLIENT, normalize_role_name
 from app.core.security import hash_password
 from app.db.session import get_db
 from app.models.auth import User
@@ -38,20 +38,19 @@ def list_users(
 def create_user(
     payload: UserCreate,
     company_id: int = Depends(resolve_company_id),
-    current_role: str = Depends(get_current_role_name),
     _: object = Depends(require_roles("dev", "attendant")),
     db: Session = Depends(get_db),
 ) -> UserResponse:
     normalized_role = normalize_role_name(payload.role) or ROLE_ATTENDANT
-    if not is_dev_role(current_role) and normalized_role != ROLE_ATTENDANT:
-        raise ValidationError("O perfil da empresa só pode criar atendentes")
+    if normalized_role != ROLE_CLIENT:
+        raise ValidationError("O painel dev pode criar apenas usuarios cliente")
 
     repository = UserRepository(db)
     role = repository.get_role_by_name(normalized_role)
     if role is None:
-        raise ValidationError("Role inválida")
+        raise ValidationError("Role invalida")
     if repository.get_by_email(payload.email.lower()):
-        raise ValidationError("E-mail já cadastrado")
+        raise ValidationError("E-mail ja cadastrado")
 
     user = User(
         company_id=company_id,
@@ -73,3 +72,22 @@ def create_user(
         is_active=user.is_active,
         created_at=user.created_at,
     )
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    company_id: int = Depends(resolve_company_id),
+    current_user: User = Depends(get_current_user),
+    _: object = Depends(require_roles("dev", "attendant")),
+    db: Session = Depends(get_db),
+) -> None:
+    repository = UserRepository(db)
+    user = repository.get_by_id(user_id)
+    if user is None or user.company_id != company_id:
+        raise ValidationError("Usuario nao encontrado")
+    if user.id == current_user.id:
+        raise ValidationError("Nao e permitido excluir o proprio usuario logado")
+
+    repository.delete(user)
+    db.commit()

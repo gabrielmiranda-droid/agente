@@ -80,3 +80,11 @@ class CompanyService:
         self.db.commit()
         self.db.refresh(instance)
         return instance
+
+    def delete_company(self, company_id: int) -> None:
+        company = self.company_repository.get_by_id(company_id)
+        if not company:
+            raise NotFoundError("Empresa nao encontrada")
+
+        self.db.delete(company)
+        self.db.commit()

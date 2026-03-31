@@ -66,24 +66,24 @@ export function CompanyCreateForm({
       >
         <div className="grid gap-4 md:grid-cols-2">
           <FormField
-            label="Administrador inicial"
-            description="Nome do responsavel principal da empresa."
+            label="Cliente inicial"
+            description="Nome do responsavel principal da operacao."
             error={form.formState.errors.dev_name?.message}
           >
             <Input {...form.register("dev_name")} placeholder="Maria Gestora" />
           </FormField>
           <FormField
-            label="E-mail do administrador"
-            description="Credencial de acesso inicial."
+            label="E-mail do cliente"
+            description="Credencial de acesso inicial do painel do cliente."
             error={form.formState.errors.dev_email?.message}
           >
-            <Input {...form.register("dev_email")} placeholder="admin@empresa.com" />
+            <Input {...form.register("dev_email")} placeholder="cliente@empresa.com" />
           </FormField>
         </div>
 
         <FormField
           label="Senha inicial"
-          description="Senha temporaria para o primeiro acesso."
+          description="Senha temporaria para o primeiro acesso do cliente."
           error={form.formState.errors.dev_password?.message}
         >
           <Input type="password" {...form.register("dev_password")} placeholder="Senha forte inicial" />

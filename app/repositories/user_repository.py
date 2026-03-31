@@ -31,7 +31,10 @@ class UserRepository:
         self.db.flush()
         return user
 
+    def delete(self, user: User) -> None:
+        self.db.delete(user)
+        self.db.flush()
+
     def mark_login(self, user: User) -> None:
         user.last_login_at = datetime.now(UTC)
         self.db.flush()
-

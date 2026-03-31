@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Plus, Store, Users2, WalletCards, Wrench } from "lucide-react";
+import { Building2, Plus, Store, Trash2, Users2, WalletCards, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 import { CompanyCreateForm, CompanyForm } from "@/components/forms/company-form";
@@ -16,12 +16,13 @@ import { ResponsibilityGrid } from "@/components/shared/responsibility-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCompanies, useCreateCompany, useUpdateCompanyById } from "@/hooks/use-company";
+import { useCompanies, useCreateCompany, useDeleteCompany, useUpdateCompanyById } from "@/hooks/use-company";
 import { getErrorMessage } from "@/lib/errors";
 
 export default function CompaniesPage() {
   const companiesQuery = useCompanies();
   const createMutation = useCreateCompany();
+  const deleteMutation = useDeleteCompany();
   const updateMutation = useUpdateCompanyById();
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
 
@@ -99,7 +100,7 @@ export default function CompaniesPage() {
                 <CardHeader>
                   <CardTitle className="text-base text-white">Criar empresa</CardTitle>
                   <CardDescription className="text-slate-500">
-                    Cadastro rapido de uma nova conta com administrador inicial.
+                    Cadastro rapido de uma nova conta com acesso inicial do cliente.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -152,6 +153,30 @@ export default function CompaniesPage() {
                         <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
                           <Building2 className="h-3.5 w-3.5" />
                           ID {company.id}
+                        </div>
+                        <div className="mt-3 flex justify-end">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="text-rose-300 hover:bg-rose-500/10 hover:text-rose-200"
+                            onClick={async (event) => {
+                              event.stopPropagation();
+                              const confirmed = window.confirm(`Excluir a empresa ${company.name}? Esta acao apaga os dados vinculados.`);
+                              if (!confirmed) return;
+                              try {
+                                await deleteMutation.mutateAsync(company.id);
+                                toast.success("Empresa excluida");
+                                if (selectedCompanyId === company.id) {
+                                  setSelectedCompanyId(null);
+                                }
+                              } catch (error) {
+                                toast.error(getErrorMessage(error, "Nao foi possivel excluir a empresa."));
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </button>
                     ))

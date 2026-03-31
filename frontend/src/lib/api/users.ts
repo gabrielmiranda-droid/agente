@@ -14,3 +14,9 @@ export function createUser(payload: { name: string; email: string; password: str
     body: JSON.stringify(payload)
   });
 }
+
+export function deleteUser(userId: number, companyId?: number) {
+  return apiRequest<void>(withCompanyScope(`/users/${userId}`, companyId), {
+    method: "DELETE"
+  });
+}

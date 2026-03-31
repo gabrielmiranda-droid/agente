@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { getCurrentUser, login as loginRequest } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
 import { destroySession, hasSession, saveSession } from "@/lib/auth/session";
 import type { CurrentUser } from "@/types/auth";
 
@@ -40,11 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
-    } catch {
-      destroySession();
-      setUser(null);
-      if (!pathname.startsWith("/login")) {
-        router.replace("/login");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        destroySession();
+        setUser(null);
+        if (!pathname.startsWith("/login")) {
+          router.replace("/login");
+        }
       }
     } finally {
       setLoading(false);
