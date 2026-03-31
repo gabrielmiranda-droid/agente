@@ -260,6 +260,11 @@ class ConversationService:
         if instance is None:
             return None
 
+        pending_order = self.order_flow_service.get_latest_pending_order(
+            company_id=company_id,
+            conversation_id=conversation.id,
+        )
+
         action = self.order_flow_service.extract_confirmation_action(message.content)
         if action is not None:
             action_name, order_id = action
@@ -285,6 +290,34 @@ class ConversationService:
                 source_message_id=message.id,
             )
             return {"action": action_name, "order_id": order_id}
+
+        if pending_order is not None:
+            context_updated = self.order_flow_service.update_order_context_from_text(pending_order, message.content)
+
+            if self.order_flow_service.is_textual_cancellation(message.content):
+                order = self.operations_service.update_order_status(company_id, pending_order.id, "cancelled")
+                self._send_automated_outgoing_message(
+                    company_id=company_id,
+                    conversation=conversation,
+                    instance=instance,
+                    content=self.order_flow_service.build_cancel_message(order),
+                    source_message_id=message.id,
+                )
+                return {"action": OrderFlowService.CANCEL_ACTION, "order_id": order.id}
+
+            should_confirm_from_text = self.order_flow_service.is_textual_confirmation(message.content) or (
+                context_updated and self.order_flow_service.has_checkout_context(message.content)
+            )
+            if should_confirm_from_text:
+                order = self.operations_service.update_order_status(company_id, pending_order.id, "confirmed")
+                self._send_automated_outgoing_message(
+                    company_id=company_id,
+                    conversation=conversation,
+                    instance=instance,
+                    content=self.order_flow_service.build_post_confirmation_message(order),
+                    source_message_id=message.id,
+                )
+                return {"action": OrderFlowService.CONFIRM_ACTION, "order_id": order.id}
 
         if not self.order_flow_service.should_offer_confirmation(message.content):
             return None

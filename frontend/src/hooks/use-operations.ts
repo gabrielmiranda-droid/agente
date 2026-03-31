@@ -9,7 +9,8 @@ import type { OperationalOrderStatus } from "@/types/operations";
 export function useClientPanel(companyId?: number) {
   return useQuery({
     queryKey: queryKeys.clientPanel(companyId),
-    queryFn: () => getClientPanel(companyId)
+    queryFn: () => getClientPanel(companyId),
+    refetchInterval: 10_000
   });
 }
 
@@ -23,7 +24,8 @@ export function useDevPanel() {
 export function useOperationalOrders(companyId?: number) {
   return useQuery({
     queryKey: queryKeys.operationalOrders(companyId),
-    queryFn: () => getOperationalOrders(companyId)
+    queryFn: () => getOperationalOrders(companyId),
+    refetchInterval: 5_000
   });
 }
 

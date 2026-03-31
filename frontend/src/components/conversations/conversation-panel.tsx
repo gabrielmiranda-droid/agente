@@ -77,8 +77,8 @@ export function ConversationPanel({
 
   if (!conversation) {
     return (
-      <Card className="h-full">
-        <CardContent className="flex h-full min-h-[720px] items-center justify-center">
+      <Card className="h-full min-h-0">
+        <CardContent className="flex h-full min-h-[560px] items-center justify-center">
           <div className="max-w-md space-y-4 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[1.6rem] border bg-accent text-accent-foreground">
               <UserRoundCog className="h-6 w-6" />
@@ -95,7 +95,7 @@ export function ConversationPanel({
   }
 
   return (
-    <Card className="flex h-full min-h-[720px] flex-col overflow-hidden">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden">
       <CardHeader className="border-b bg-card/80">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-4">
@@ -225,7 +225,7 @@ export function ConversationPanel({
           </div>
         </div>
 
-        <aside className="border-l bg-background/90 p-5">
+        <aside className="min-h-0 overflow-y-auto border-l bg-background/90 p-5">
           <div className="space-y-5">
             <div>
               <p className="text-sm font-semibold">Contexto interno</p>

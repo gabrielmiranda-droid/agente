@@ -108,7 +108,7 @@ export default function ConversationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-6">
       <PageHeader
         eyebrow="Conversas"
         title="Atendimento da loja"
@@ -121,9 +121,9 @@ export default function ConversationsPage() {
         <StatCard title="Bot pausado" value={cards.paused} icon={PauseCircle} hint="Conversas com automação parada" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
-        <Card className="overflow-hidden">
-          <CardContent className="space-y-4 p-5">
+      <div className="grid min-h-0 flex-1 gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+        <Card className="flex min-h-0 flex-col overflow-hidden">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-5">
             <div className="space-y-1">
               <p className="text-sm font-semibold">Lista de clientes</p>
               <p className="text-sm leading-6 text-muted-foreground">
@@ -192,11 +192,13 @@ export default function ConversationsPage() {
               <Badge variant="neutral">{filteredConversations.length} conversas</Badge>
             </div>
 
-            <ConversationList
-              conversations={filteredConversations}
-              selectedId={selectedId}
-              onSelect={(conversation) => setSelectedId(conversation.id)}
-            />
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <ConversationList
+                conversations={filteredConversations}
+                selectedId={selectedId}
+                onSelect={(conversation) => setSelectedId(conversation.id)}
+              />
+            </div>
           </CardContent>
         </Card>
 

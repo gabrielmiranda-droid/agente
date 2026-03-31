@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -38,12 +39,82 @@ class OrderFlowService:
             .order_by(Order.created_at.desc())
         )
 
+    def get_latest_pending_order(self, *, company_id: int, conversation_id: int) -> Order | None:
+        return self.db.scalar(
+            select(Order)
+            .where(
+                Order.company_id == company_id,
+                Order.conversation_id == conversation_id,
+                Order.status == "pending_confirmation",
+            )
+            .options(joinedload(Order.items), joinedload(Order.print_jobs))
+            .order_by(Order.created_at.desc())
+        )
+
     def extract_confirmation_action(self, text: str) -> tuple[str, int] | None:
         normalized = text.strip().lower()
         match = re.match(r"^(confirm_order|adjust_order|cancel_order):(\d+)$", normalized)
         if not match:
             return None
         return match.group(1), int(match.group(2))
+
+    def is_textual_confirmation(self, text: str) -> bool:
+        normalized = self._normalize(text)
+        confirmation_terms = {
+            "sim",
+            "pode",
+            "pode confirmar",
+            "confirma",
+            "confirmar",
+            "confirmado",
+            "fechar pedido",
+            "fechar",
+            "ok",
+            "okk",
+            "blz",
+            "beleza",
+            "isso",
+            "isso mesmo",
+        }
+        return normalized in confirmation_terms
+
+    def is_textual_cancellation(self, text: str) -> bool:
+        normalized = self._normalize(text)
+        cancellation_terms = {
+            "cancelar",
+            "cancela",
+            "nao quero",
+            "não quero",
+            "deixa",
+            "deixa pra la",
+            "deixa pra lá",
+        }
+        return normalized in cancellation_terms
+
+    def has_checkout_context(self, text: str) -> bool:
+        normalized = self._normalize(text)
+        return any(
+            term in normalized
+            for term in [
+                "retirada",
+                "retirar",
+                "buscar",
+                "balcao",
+                "entrega",
+                "entregar",
+                "delivery",
+                "motoboy",
+                "pix",
+                "cartao",
+                "dinheiro",
+                "rua",
+                "avenida",
+                "av ",
+                "travessa",
+                "alameda",
+                "bairro",
+            ]
+        )
 
     def should_offer_confirmation(self, text: str) -> bool:
         normalized = text.lower()
@@ -71,6 +142,29 @@ class OrderFlowService:
         ]
         return any(term in normalized for term in purchase_terms)
 
+    def update_order_context_from_text(self, order: Order, text: str) -> bool:
+        original = (
+            order.fulfillment_type,
+            order.payment_method,
+            order.delivery_address,
+            order.neighborhood,
+            order.notes,
+        )
+        order.fulfillment_type = self._detect_fulfillment_type(text, fallback=order.fulfillment_type)
+        order.payment_method = self._detect_payment_method(text, fallback=order.payment_method)
+        order.delivery_address = self._extract_address(text) or order.delivery_address
+        order.neighborhood = self._extract_neighborhood(text) or order.neighborhood
+        order.notes = self._merge_notes(order.notes, self._extract_notes(text))
+        self.db.flush()
+        updated = (
+            order.fulfillment_type,
+            order.payment_method,
+            order.delivery_address,
+            order.neighborhood,
+            order.notes,
+        )
+        return updated != original
+
     def build_or_update_draft_order(
         self,
         *,
@@ -87,12 +181,12 @@ class OrderFlowService:
             ).all()
         )
         matched_items = self._match_products(text, products)
-        if not matched_items:
-            return None
-
         order = self.get_latest_active_order(company_id=company_id, conversation_id=conversation.id)
         if order and order.status not in {"new", "pending_confirmation"}:
             order = None
+
+        if not matched_items and order is None:
+            return None
 
         if order is None:
             order = Order(
@@ -113,33 +207,8 @@ class OrderFlowService:
             self.db.flush()
         else:
             order.status = "pending_confirmation"
-            order.fulfillment_type = self._detect_fulfillment_type(text, fallback=order.fulfillment_type)
-            order.payment_method = self._detect_payment_method(text, fallback=order.payment_method)
-            order.delivery_address = self._extract_address(text) or order.delivery_address
-            order.neighborhood = self._extract_neighborhood(text) or order.neighborhood
-            order.notes = self._merge_notes(order.notes, self._extract_notes(text))
-            order.items.clear()
-            self.db.flush()
-
-        subtotal = 0.0
-        for matched in matched_items:
-            line_total = matched["quantity"] * matched["unit_price"]
-            subtotal += line_total
-            self.db.add(
-                OrderItem(
-                    company_id=company_id,
-                    order_id=order.id,
-                    product_id=matched["product_id"],
-                    product_name=matched["product_name"],
-                    quantity=matched["quantity"],
-                    unit_price=matched["unit_price"],
-                    total_price=line_total,
-                    addons_json=[],
-                    notes=None,
-                )
-            )
-
-        order.subtotal = subtotal
+        self.update_order_context_from_text(order, text)
+        subtotal = self._merge_items(order, matched_items, company_id)
         order.delivery_fee = order.delivery_fee or 0
         order.discount_amount = order.discount_amount or 0
         order.total_amount = subtotal + _float(order.delivery_fee) - _float(order.discount_amount)
@@ -157,7 +226,14 @@ class OrderFlowService:
         return " ".join(pieces)
 
     def build_post_confirmation_message(self, order: Order) -> str:
-        next_step = "Vou seguir com a entrega." if order.fulfillment_type == "delivery" else "Vou deixar separado para retirada."
+        if order.fulfillment_type == "delivery":
+            next_step = (
+                "Agora me informe o endereco e bairro se ainda faltar, para eu deixar a entrega pronta."
+                if not order.delivery_address
+                else "Vou seguir com a entrega."
+            )
+        else:
+            next_step = "Vou deixar separado para retirada."
         payment = order.payment_method or "pagamento a confirmar"
         return (
             f"Pedido {order.code} confirmado com sucesso. "
@@ -207,10 +283,12 @@ class OrderFlowService:
 
     def _match_products(self, text: str, products: list[Product]) -> list[dict]:
         normalized = self._normalize(text)
+        compact_text = self._compact(text)
         matches: list[dict] = []
         for product in products:
             product_name = self._normalize(product.name)
-            if product_name not in normalized:
+            compact_product_name = self._compact(product.name)
+            if product_name not in normalized and compact_product_name not in compact_text:
                 continue
             quantity = self._extract_quantity(normalized, product_name)
             unit_price = _float(product.promotional_price if product.promotional_price is not None else product.price)
@@ -223,6 +301,38 @@ class OrderFlowService:
                 }
             )
         return matches
+
+    def _merge_items(self, order: Order, matched_items: list[dict], company_id: int) -> float:
+        existing_by_product_id = {
+            item.product_id: item
+            for item in order.items
+            if item.product_id is not None
+        }
+
+        for matched in matched_items:
+            existing = existing_by_product_id.get(matched["product_id"])
+            if existing:
+                existing.quantity += matched["quantity"]
+                existing.unit_price = matched["unit_price"]
+                existing.total_price = existing.quantity * matched["unit_price"]
+            else:
+                self.db.add(
+                    OrderItem(
+                        company_id=company_id,
+                        order_id=order.id,
+                        product_id=matched["product_id"],
+                        product_name=matched["product_name"],
+                        quantity=matched["quantity"],
+                        unit_price=matched["unit_price"],
+                        total_price=matched["quantity"] * matched["unit_price"],
+                        addons_json=[],
+                        notes=None,
+                    )
+                )
+        self.db.flush()
+        subtotal = sum(_float(item.total_price) for item in order.items)
+        order.subtotal = subtotal
+        return subtotal
 
     def _extract_quantity(self, normalized_text: str, normalized_product_name: str) -> int:
         patterns = [
@@ -281,4 +391,10 @@ class OrderFlowService:
 
     @staticmethod
     def _normalize(value: str) -> str:
-        return re.sub(r"\s+", " ", value.lower()).strip()
+        ascii_value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+        cleaned = re.sub(r"[^a-z0-9]+", " ", ascii_value.lower())
+        return re.sub(r"\s+", " ", cleaned).strip()
+
+    @classmethod
+    def _compact(cls, value: str) -> str:
+        return cls._normalize(value).replace(" ", "")
