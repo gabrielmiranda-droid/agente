@@ -1,14 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquareMore, PauseCircle, Search, SlidersHorizontal, UserCheck, X } from "lucide-react";
+import {
+  LayoutGrid,
+  MessageSquareMore,
+  PauseCircle,
+  Search,
+  SlidersHorizontal,
+  UserCheck,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { ConversationContextPanel } from "@/components/conversations/conversation-context-panel";
 import { ConversationList } from "@/components/conversations/conversation-list";
 import { ConversationPanel } from "@/components/conversations/conversation-panel";
 import { useAuth } from "@/components/providers/auth-provider";
-import { PageHeader } from "@/components/layout/page-header";
 import { ErrorState } from "@/components/shared/error-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { Badge } from "@/components/ui/badge";
@@ -79,16 +86,10 @@ export default function ConversationsPage() {
     [filteredConversations, selectedId],
   );
 
-  useEffect(() => {
-    if (selectedConversation) {
-      setIsContextOpen(false);
-    }
-  }, [selectedConversation?.id]);
-
   const messagesQuery = useConversationMessages(selectedId, companyId);
   const actions = useConversationActions(selectedId, companyId);
 
-  const cards = useMemo(() => {
+  const summary = useMemo(() => {
     const conversations = conversationsQuery.data ?? [];
     return {
       total: conversations.length,
@@ -115,17 +116,31 @@ export default function ConversationsPage() {
     );
   }
 
+  const desktopGrid = isContextOpen
+    ? "xl:grid-cols-[220px_minmax(0,1fr)_300px]"
+    : "xl:grid-cols-[220px_minmax(0,1fr)]";
+
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
-      <PageHeader
-        eyebrow="Conversas"
-        title="Atendimento da loja"
-        description="Inbox operacional com foco total no chat, acompanhamento rapido e intervencao humana imediata."
-        actions={
+    <div className="-mx-4 -mb-5 flex h-full min-h-0 flex-col overflow-hidden sm:-mx-6 lg:-mx-8 lg:-mb-8">
+      <div className="border-b border-white/6 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <MessageSquareMore className="h-3.5 w-3.5" />
+              Conversas
+            </div>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-white">Inbox operacional</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Chat dominante, acompanhamento rapido e intervencao humana sem perder contexto.
+              </p>
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="neutral">{cards.total} na fila</Badge>
-            <Badge variant="neutral">{cards.handoffs} humano</Badge>
-            <Badge variant="neutral">{cards.paused} pausado</Badge>
+            <Badge variant="neutral">{summary.total} na fila</Badge>
+            <Badge variant="neutral">{summary.handoffs} humano</Badge>
+            <Badge variant="neutral">{summary.paused} pausado</Badge>
             <Button
               variant="outline"
               className="rounded-2xl"
@@ -135,151 +150,150 @@ export default function ConversationsPage() {
               {isContextOpen ? "Fechar painel" : "Abrir painel"}
             </Button>
           </div>
-        }
-      />
+        </div>
+      </div>
 
-      <div
-        className={`grid min-h-0 flex-1 gap-3 overflow-hidden ${
-          isContextOpen
-            ? "xl:grid-cols-[220px_minmax(0,1fr)_240px]"
-            : "xl:grid-cols-[220px_minmax(0,1fr)]"
-        }`}
-      >
-        <Card className="flex min-h-0 flex-col overflow-hidden">
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-3">
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">Clientes</p>
-              <p className="text-xs leading-5 text-muted-foreground">
-                Busca e filtros rapidos.
-              </p>
-            </div>
-
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar cliente ou mensagem..."
-                className="pl-10"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Modo</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {(["all", "ai", "human"] as const).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setModeFilter(value)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                      modeFilter === value
-                        ? "border-primary/20 bg-primary text-primary-foreground"
-                        : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    {value === "all" ? "Todos" : value === "ai" ? "IA atendendo" : "Humano atendendo"}
-                  </button>
-                ))}
+      <div className="min-h-0 flex-1 px-4 py-3 sm:px-6 lg:px-8 lg:py-4">
+        <div className={`grid h-full min-h-0 gap-3 ${desktopGrid}`}>
+          <Card className="flex min-h-0 flex-col overflow-hidden rounded-[1.6rem] border-white/8 bg-black/25">
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/8 bg-white/[0.03] text-muted-foreground">
+                  <LayoutGrid className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Clientes</p>
+                  <p className="text-xs text-muted-foreground">Busca e filtros</p>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Situacao</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {(["all", "open", "pending", "resolved"] as const).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setStatusFilter(value)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                      statusFilter === value
-                        ? "border-border bg-secondary text-secondary-foreground"
-                        : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    {value === "all"
-                      ? "Todas"
-                      : value === "open"
-                        ? "Em aberto"
-                        : value === "pending"
-                          ? "Em acompanhamento"
-                          : "Encerradas"}
-                  </button>
-                ))}
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Buscar cliente ou mensagem..."
+                  className="h-11 rounded-2xl pl-10"
+                />
               </div>
-            </div>
 
-            <div className="flex items-center justify-between rounded-2xl border bg-muted/20 px-3 py-2">
-              <p className="text-sm text-muted-foreground">Filtro</p>
-              <Badge variant="neutral">{filteredConversations.length} conversas</Badge>
-            </div>
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Modo</p>
+                <div className="flex flex-wrap gap-2">
+                  {(["all", "ai", "human"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setModeFilter(value)}
+                      className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                        modeFilter === value
+                          ? "border-primary/20 bg-primary text-primary-foreground"
+                          : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {value === "all" ? "Todos" : value === "ai" ? "IA atendendo" : "Humano"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
-              <ConversationList
-                conversations={filteredConversations}
-                selectedId={selectedId}
-                onSelect={(conversation) => setSelectedId(conversation.id)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Situacao</p>
+                <div className="flex flex-wrap gap-2">
+                  {(["all", "open", "pending", "resolved"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setStatusFilter(value)}
+                      className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                        statusFilter === value
+                          ? "border-border bg-secondary text-secondary-foreground"
+                          : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {value === "all"
+                        ? "Todas"
+                        : value === "open"
+                          ? "Em aberto"
+                          : value === "pending"
+                            ? "Acompanhando"
+                            : "Encerradas"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-        <ConversationPanel
-          conversation={selectedConversation}
-          messages={messagesQuery.data ?? []}
-          loadingMessages={messagesQuery.isLoading}
-          messageLoadError={Boolean(messagesQuery.error)}
-          showContextPanel={isContextOpen}
-          onToggleContextPanel={() => setIsContextOpen((current) => !current)}
-          onSend={async (payload) => {
-            try {
-              await actions.sendManualMessageMutation.mutateAsync(payload);
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel enviar a mensagem."));
-              throw error;
-            }
-          }}
-          onHandoff={async () => {
-            try {
-              await actions.handoffMutation.mutateAsync();
-              toast.success("Atendimento assumido");
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel assumir o atendimento."));
-            }
-          }}
-          onReturnToAi={async () => {
-            try {
-              await actions.returnToAiMutation.mutateAsync();
-              toast.success("Conversa devolvida para a IA");
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel devolver a conversa para a IA."));
-            }
-          }}
-          onResume={async () => {
-            try {
-              await actions.resumeBotMutation.mutateAsync();
-              toast.success("Bot reativado");
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel reativar o bot."));
-            }
-          }}
-        />
+              <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2">
+                <p className="text-sm text-muted-foreground">Resultado</p>
+                <Badge variant="neutral">{filteredConversations.length} conversas</Badge>
+              </div>
 
-        {isContextOpen ? (
-          <ConversationContextPanel
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+                <ConversationList
+                  conversations={filteredConversations}
+                  selectedId={selectedId}
+                  onSelect={(conversation) => setSelectedId(conversation.id)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <ConversationPanel
             conversation={selectedConversation}
-            onUpdateConversation={async (payload) => {
+            messages={messagesQuery.data ?? []}
+            loadingMessages={messagesQuery.isLoading}
+            messageLoadError={Boolean(messagesQuery.error)}
+            showContextPanel={isContextOpen}
+            onToggleContextPanel={() => setIsContextOpen((current) => !current)}
+            onSend={async (payload) => {
               try {
-                await actions.updateConversationMutation.mutateAsync(payload);
+                await actions.sendManualMessageMutation.mutateAsync(payload);
               } catch (error) {
-                toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
+                toast.error(getErrorMessage(error, "Nao foi possivel enviar a mensagem."));
                 throw error;
               }
             }}
-            className="hidden xl:flex xl:flex-col"
+            onHandoff={async () => {
+              try {
+                await actions.handoffMutation.mutateAsync();
+                toast.success("Atendimento assumido");
+              } catch (error) {
+                toast.error(getErrorMessage(error, "Nao foi possivel assumir o atendimento."));
+              }
+            }}
+            onReturnToAi={async () => {
+              try {
+                await actions.returnToAiMutation.mutateAsync();
+                toast.success("Conversa devolvida para a IA");
+              } catch (error) {
+                toast.error(getErrorMessage(error, "Nao foi possivel devolver a conversa para a IA."));
+              }
+            }}
+            onResume={async () => {
+              try {
+                await actions.resumeBotMutation.mutateAsync();
+                toast.success("Bot reativado");
+              } catch (error) {
+                toast.error(getErrorMessage(error, "Nao foi possivel reativar o bot."));
+              }
+            }}
           />
-        ) : null}
+
+          {isContextOpen ? (
+            <ConversationContextPanel
+              conversation={selectedConversation}
+              onUpdateConversation={async (payload) => {
+                try {
+                  await actions.updateConversationMutation.mutateAsync(payload);
+                } catch (error) {
+                  toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
+                  throw error;
+                }
+              }}
+              className="hidden min-h-0 xl:flex xl:flex-col"
+            />
+          ) : null}
+        </div>
       </div>
 
       {isContextOpen ? (
