@@ -156,7 +156,7 @@ export function ConversationPanel({
         </div>
       </CardHeader>
 
-      <CardContent className="grid flex-1 gap-0 overflow-hidden p-0 xl:grid-cols-[1fr_320px]">
+      <CardContent className="grid flex-1 gap-0 overflow-hidden p-0 xl:grid-cols-[minmax(0,1fr)_280px]">
         <div className="flex min-h-0 flex-col overflow-hidden bg-muted/10">
           <div className="border-b bg-background/85 px-6 py-3 text-sm text-muted-foreground">
             {conversation.human_handoff_active ? (

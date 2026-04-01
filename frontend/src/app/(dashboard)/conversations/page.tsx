@@ -115,13 +115,13 @@ export default function ConversationsPage() {
         description="Uma central em estilo WhatsApp para acompanhar clientes, assumir o atendimento e devolver para a IA quando necessário."
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Clientes na fila" value={cards.total} icon={MessageSquareMore} hint="Conversas visíveis agora" />
-        <StatCard title="Atendimento humano" value={cards.handoffs} icon={UserCheck} hint="Casos assumidos pela equipe" />
-        <StatCard title="Bot pausado" value={cards.paused} icon={PauseCircle} hint="Conversas com automação parada" />
+      <div className="grid gap-3 md:grid-cols-3">
+        <StatCard title="Clientes na fila" value={cards.total} icon={MessageSquareMore} hint="Conversas visíveis agora" compact />
+        <StatCard title="Atendimento humano" value={cards.handoffs} icon={UserCheck} hint="Casos assumidos pela equipe" compact />
+        <StatCard title="Bot pausado" value={cards.paused} icon={PauseCircle} hint="Conversas com automação parada" compact />
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-6 overflow-hidden xl:h-[calc(100vh-18.5rem)] xl:grid-cols-[420px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-5 overflow-hidden xl:h-[calc(100vh-16.75rem)] xl:grid-cols-[360px_minmax(0,1fr)]">
         <Card className="flex min-h-0 flex-col overflow-hidden">
           <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-5">
             <div className="space-y-1">
