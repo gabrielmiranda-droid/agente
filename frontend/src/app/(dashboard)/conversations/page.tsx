@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquareMore, PauseCircle, Search, UserCheck } from "lucide-react";
+import { MessageSquareMore, PauseCircle, Search, UserCheck, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { ConversationList } from "@/components/conversations/conversation-list";
 import { ConversationPanel } from "@/components/conversations/conversation-panel";
-import { StatCard } from "@/components/dashboard/stat-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { ErrorState } from "@/components/shared/error-state";
 import { LoadingState } from "@/components/shared/loading-state";
@@ -93,7 +92,7 @@ export default function ConversationsPage() {
     return (
       <LoadingState
         label="Carregando conversas..."
-        description="Buscando clientes, histórico e status do atendimento da loja."
+        description="Buscando clientes, historico e status do atendimento da loja."
       />
     );
   }
@@ -101,33 +100,33 @@ export default function ConversationsPage() {
   if (conversationsQuery.error) {
     return (
       <ErrorState
-        description="Não foi possível carregar a central de conversas."
+        description="Nao foi possivel carregar a central de conversas."
         onRetry={() => void conversationsQuery.refetch()}
       />
     );
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <PageHeader
         eyebrow="Conversas"
         title="Atendimento da loja"
-        description="Uma central em estilo WhatsApp para acompanhar clientes, assumir o atendimento e devolver para a IA quando necessário."
+        description="Central operacional da loja para acompanhar clientes, assumir o atendimento e devolver para a IA."
       />
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <StatCard title="Clientes na fila" value={cards.total} icon={MessageSquareMore} hint="Conversas visíveis agora" compact />
-        <StatCard title="Atendimento humano" value={cards.handoffs} icon={UserCheck} hint="Casos assumidos pela equipe" compact />
-        <StatCard title="Bot pausado" value={cards.paused} icon={PauseCircle} hint="Conversas com automação parada" compact />
+      <div className="flex flex-wrap items-center gap-3 rounded-[1.6rem] border border-white/8 bg-black/25 px-4 py-3">
+        <InlineMetric icon={MessageSquareMore} label="Clientes na fila" value={cards.total} />
+        <InlineMetric icon={UserCheck} label="Atendimento humano" value={cards.handoffs} />
+        <InlineMetric icon={PauseCircle} label="Bot pausado" value={cards.paused} />
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-5 overflow-hidden xl:h-[calc(100vh-16.75rem)] xl:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:h-[calc(100vh-13.75rem)] xl:grid-cols-[300px_minmax(0,1fr)]">
         <Card className="flex min-h-0 flex-col overflow-hidden">
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-5">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-4">
             <div className="space-y-1">
               <p className="text-sm font-semibold">Lista de clientes</p>
               <p className="text-sm leading-6 text-muted-foreground">
-                Busque por nome, telefone ou trecho da mensagem e filtre rapidamente o tipo de atendimento.
+                Busque por nome, telefone ou trecho da mensagem e filtre rapidamente o atendimento.
               </p>
             </div>
 
@@ -162,7 +161,7 @@ export default function ConversationsPage() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Situação</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Situacao</p>
               <div className="flex flex-wrap items-center gap-2">
                 {(["all", "open", "pending", "resolved"] as const).map((value) => (
                   <button
@@ -212,7 +211,7 @@ export default function ConversationsPage() {
             try {
               await actions.updateConversationMutation.mutateAsync(payload);
             } catch (error) {
-              toast.error(getErrorMessage(error, "Não foi possível atualizar a conversa."));
+              toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
               throw error;
             }
           }}
@@ -220,7 +219,7 @@ export default function ConversationsPage() {
             try {
               await actions.sendManualMessageMutation.mutateAsync(payload);
             } catch (error) {
-              toast.error(getErrorMessage(error, "Não foi possível enviar a mensagem."));
+              toast.error(getErrorMessage(error, "Nao foi possivel enviar a mensagem."));
               throw error;
             }
           }}
@@ -229,7 +228,7 @@ export default function ConversationsPage() {
               await actions.pauseBotMutation.mutateAsync();
               toast.success("Bot pausado");
             } catch (error) {
-              toast.error(getErrorMessage(error, "Não foi possível pausar o bot."));
+              toast.error(getErrorMessage(error, "Nao foi possivel pausar o bot."));
             }
           }}
           onResume={async () => {
@@ -237,7 +236,7 @@ export default function ConversationsPage() {
               await actions.resumeBotMutation.mutateAsync();
               toast.success("Bot reativado");
             } catch (error) {
-              toast.error(getErrorMessage(error, "Não foi possível reativar o bot."));
+              toast.error(getErrorMessage(error, "Nao foi possivel reativar o bot."));
             }
           }}
           onHandoff={async () => {
@@ -245,7 +244,7 @@ export default function ConversationsPage() {
               await actions.handoffMutation.mutateAsync();
               toast.success("Atendimento assumido");
             } catch (error) {
-              toast.error(getErrorMessage(error, "Não foi possível assumir o atendimento."));
+              toast.error(getErrorMessage(error, "Nao foi possivel assumir o atendimento."));
             }
           }}
           onReturnToAi={async () => {
@@ -253,10 +252,32 @@ export default function ConversationsPage() {
               await actions.returnToAiMutation.mutateAsync();
               toast.success("Conversa devolvida para a IA");
             } catch (error) {
-              toast.error(getErrorMessage(error, "Não foi possível devolver a conversa para a IA."));
+              toast.error(getErrorMessage(error, "Nao foi possivel devolver a conversa para a IA."));
             }
           }}
         />
+      </div>
+    </div>
+  );
+}
+
+function InlineMetric({
+  icon: Icon,
+  label,
+  value
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="inline-flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/15 bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+        <p className="text-lg font-semibold text-white">{value}</p>
       </div>
     </div>
   );
