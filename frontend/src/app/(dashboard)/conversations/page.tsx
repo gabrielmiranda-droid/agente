@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquareMore, PauseCircle, Search, SlidersHorizontal, UserCheck, X, type LucideIcon } from "lucide-react";
+import { MessageSquareMore, PauseCircle, Search, SlidersHorizontal, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { ConversationContextPanel } from "@/components/conversations/conversation-context-panel";
@@ -122,30 +122,35 @@ export default function ConversationsPage() {
         title="Atendimento da loja"
         description="Inbox operacional com foco total no chat, acompanhamento rapido e intervencao humana imediata."
         actions={
-          <Button
-            variant="outline"
-            className="rounded-2xl xl:hidden"
-            onClick={() => setIsContextOpen(true)}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Abrir painel
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="neutral">{cards.total} na fila</Badge>
+            <Badge variant="neutral">{cards.handoffs} humano</Badge>
+            <Badge variant="neutral">{cards.paused} pausado</Badge>
+            <Button
+              variant="outline"
+              className="rounded-2xl"
+              onClick={() => setIsContextOpen((current) => !current)}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {isContextOpen ? "Fechar painel" : "Abrir painel"}
+            </Button>
+          </div>
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-[1.4rem] border border-white/8 bg-black/25 px-4 py-2.5">
-        <InlineMetric icon={MessageSquareMore} label="Clientes na fila" value={cards.total} />
-        <InlineMetric icon={UserCheck} label="Atendimento humano" value={cards.handoffs} />
-        <InlineMetric icon={PauseCircle} label="Bot pausado" value={cards.paused} />
-      </div>
-
-      <div className="grid min-h-0 flex-1 gap-3 overflow-hidden xl:grid-cols-[260px_minmax(0,1fr)_280px]">
+      <div
+        className={`grid min-h-0 flex-1 gap-3 overflow-hidden ${
+          isContextOpen
+            ? "xl:grid-cols-[220px_minmax(0,1fr)_240px]"
+            : "xl:grid-cols-[220px_minmax(0,1fr)]"
+        }`}
+      >
         <Card className="flex min-h-0 flex-col overflow-hidden">
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-3">
             <div className="space-y-1">
               <p className="text-sm font-semibold">Clientes</p>
-              <p className="text-sm leading-6 text-muted-foreground">
-                Busque e filtre rapidamente para abrir a conversa certa.
+              <p className="text-xs leading-5 text-muted-foreground">
+                Busca e filtros rapidos.
               </p>
             </div>
 
@@ -261,18 +266,20 @@ export default function ConversationsPage() {
           }}
         />
 
-        <ConversationContextPanel
-          conversation={selectedConversation}
-          onUpdateConversation={async (payload) => {
-            try {
-              await actions.updateConversationMutation.mutateAsync(payload);
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
-              throw error;
-            }
-          }}
-          className="hidden xl:flex xl:flex-col"
-        />
+        {isContextOpen ? (
+          <ConversationContextPanel
+            conversation={selectedConversation}
+            onUpdateConversation={async (payload) => {
+              try {
+                await actions.updateConversationMutation.mutateAsync(payload);
+              } catch (error) {
+                toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
+                throw error;
+              }
+            }}
+            className="hidden xl:flex xl:flex-col"
+          />
+        ) : null}
       </div>
 
       {isContextOpen ? (
@@ -306,28 +313,6 @@ export default function ConversationsPage() {
           </div>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function InlineMetric({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="inline-flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/15 bg-primary/10 text-primary">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
-        <p className="text-lg font-semibold text-white">{value}</p>
-      </div>
     </div>
   );
 }
