@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquareMore, PauseCircle, Search, UserCheck, type LucideIcon } from "lucide-react";
+import { MessageSquareMore, PauseCircle, Search, SlidersHorizontal, UserCheck, X, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { useAuth } from "@/components/providers/auth-provider";
+import { ConversationContextPanel } from "@/components/conversations/conversation-context-panel";
 import { ConversationList } from "@/components/conversations/conversation-list";
 import { ConversationPanel } from "@/components/conversations/conversation-panel";
+import { useAuth } from "@/components/providers/auth-provider";
 import { PageHeader } from "@/components/layout/page-header";
 import { ErrorState } from "@/components/shared/error-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useConversationActions, useConversationMessages, useConversations } from "@/hooks/use-conversations";
@@ -29,6 +31,7 @@ export default function ConversationsPage() {
   const [search, setSearch] = useState("");
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [isContextOpen, setIsContextOpen] = useState(false);
 
   const filteredConversations = useMemo(() => {
     const conversations = conversationsQuery.data ?? [];
@@ -43,7 +46,7 @@ export default function ConversationsPage() {
           conversation.contact_phone_number ?? "",
           conversation.last_message_preview ?? "",
           conversation.status,
-          conversation.human_handoff_active ? "humano" : "ia"
+          conversation.human_handoff_active ? "humano" : "ia",
         ]
           .join(" ")
           .toLowerCase()
@@ -73,8 +76,14 @@ export default function ConversationsPage() {
 
   const selectedConversation = useMemo(
     () => filteredConversations.find((conversation) => conversation.id === selectedId) ?? null,
-    [filteredConversations, selectedId]
+    [filteredConversations, selectedId],
   );
+
+  useEffect(() => {
+    if (selectedConversation) {
+      setIsContextOpen(false);
+    }
+  }, [selectedConversation?.id]);
 
   const messagesQuery = useConversationMessages(selectedId, companyId);
   const actions = useConversationActions(selectedId, companyId);
@@ -84,7 +93,7 @@ export default function ConversationsPage() {
     return {
       total: conversations.length,
       handoffs: conversations.filter((conversation) => conversation.human_handoff_active).length,
-      paused: conversations.filter((conversation) => !conversation.bot_enabled).length
+      paused: conversations.filter((conversation) => !conversation.bot_enabled).length,
     };
   }, [conversationsQuery.data]);
 
@@ -107,26 +116,36 @@ export default function ConversationsPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
       <PageHeader
         eyebrow="Conversas"
         title="Atendimento da loja"
-        description="Central operacional da loja para acompanhar clientes, assumir o atendimento e devolver para a IA."
+        description="Inbox operacional com foco total no chat, acompanhamento rapido e intervencao humana imediata."
+        actions={
+          <Button
+            variant="outline"
+            className="rounded-2xl xl:hidden"
+            onClick={() => setIsContextOpen(true)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Abrir painel
+          </Button>
+        }
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-[1.6rem] border border-white/8 bg-black/25 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3 rounded-[1.4rem] border border-white/8 bg-black/25 px-4 py-2.5">
         <InlineMetric icon={MessageSquareMore} label="Clientes na fila" value={cards.total} />
         <InlineMetric icon={UserCheck} label="Atendimento humano" value={cards.handoffs} />
         <InlineMetric icon={PauseCircle} label="Bot pausado" value={cards.paused} />
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:h-[calc(100vh-13.75rem)] xl:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 gap-3 overflow-hidden xl:grid-cols-[260px_minmax(0,1fr)_280px]">
         <Card className="flex min-h-0 flex-col overflow-hidden">
           <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-4">
             <div className="space-y-1">
-              <p className="text-sm font-semibold">Lista de clientes</p>
+              <p className="text-sm font-semibold">Clientes</p>
               <p className="text-sm leading-6 text-muted-foreground">
-                Busque por nome, telefone ou trecho da mensagem e filtre rapidamente o atendimento.
+                Busque e filtre rapidamente para abrir a conversa certa.
               </p>
             </div>
 
@@ -135,13 +154,13 @@ export default function ConversationsPage() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar cliente, telefone ou mensagem..."
+                placeholder="Buscar cliente ou mensagem..."
                 className="pl-10"
               />
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Modo de atendimento</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Modo</p>
               <div className="flex flex-wrap items-center gap-2">
                 {(["all", "ai", "human"] as const).map((value) => (
                   <button
@@ -187,7 +206,7 @@ export default function ConversationsPage() {
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border bg-muted/20 px-3 py-2">
-              <p className="text-sm text-muted-foreground">Resultado do filtro</p>
+              <p className="text-sm text-muted-foreground">Filtro</p>
               <Badge variant="neutral">{filteredConversations.length} conversas</Badge>
             </div>
 
@@ -202,41 +221,18 @@ export default function ConversationsPage() {
         </Card>
 
         <ConversationPanel
-          canManageBot={user?.role === "dev"}
           conversation={selectedConversation}
           messages={messagesQuery.data ?? []}
           loadingMessages={messagesQuery.isLoading}
           messageLoadError={Boolean(messagesQuery.error)}
-          onUpdateConversation={async (payload) => {
-            try {
-              await actions.updateConversationMutation.mutateAsync(payload);
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
-              throw error;
-            }
-          }}
+          showContextPanel={isContextOpen}
+          onToggleContextPanel={() => setIsContextOpen((current) => !current)}
           onSend={async (payload) => {
             try {
               await actions.sendManualMessageMutation.mutateAsync(payload);
             } catch (error) {
               toast.error(getErrorMessage(error, "Nao foi possivel enviar a mensagem."));
               throw error;
-            }
-          }}
-          onPause={async () => {
-            try {
-              await actions.pauseBotMutation.mutateAsync();
-              toast.success("Bot pausado");
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel pausar o bot."));
-            }
-          }}
-          onResume={async () => {
-            try {
-              await actions.resumeBotMutation.mutateAsync();
-              toast.success("Bot reativado");
-            } catch (error) {
-              toast.error(getErrorMessage(error, "Nao foi possivel reativar o bot."));
             }
           }}
           onHandoff={async () => {
@@ -255,8 +251,61 @@ export default function ConversationsPage() {
               toast.error(getErrorMessage(error, "Nao foi possivel devolver a conversa para a IA."));
             }
           }}
+          onResume={async () => {
+            try {
+              await actions.resumeBotMutation.mutateAsync();
+              toast.success("Bot reativado");
+            } catch (error) {
+              toast.error(getErrorMessage(error, "Nao foi possivel reativar o bot."));
+            }
+          }}
+        />
+
+        <ConversationContextPanel
+          conversation={selectedConversation}
+          onUpdateConversation={async (payload) => {
+            try {
+              await actions.updateConversationMutation.mutateAsync(payload);
+            } catch (error) {
+              toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
+              throw error;
+            }
+          }}
+          className="hidden xl:flex xl:flex-col"
         />
       </div>
+
+      {isContextOpen ? (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm xl:hidden">
+          <div className="absolute inset-y-0 right-0 flex w-full max-w-sm flex-col border-l border-white/10 bg-background shadow-2xl">
+            <div className="flex items-center justify-between border-b px-4 py-4">
+              <div>
+                <p className="text-sm font-semibold text-white">Painel lateral</p>
+                <p className="text-xs text-muted-foreground">Notas, tags e contexto da conversa.</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIsContextOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="min-h-0 flex-1 p-4">
+              <ConversationContextPanel
+                conversation={selectedConversation}
+                onUpdateConversation={async (payload) => {
+                  try {
+                    await actions.updateConversationMutation.mutateAsync(payload);
+                    setIsContextOpen(false);
+                  } catch (error) {
+                    toast.error(getErrorMessage(error, "Nao foi possivel atualizar a conversa."));
+                    throw error;
+                  }
+                }}
+                className="h-full border-0 bg-transparent shadow-none"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -264,7 +313,7 @@ export default function ConversationsPage() {
 function InlineMetric({
   icon: Icon,
   label,
-  value
+  value,
 }: {
   icon: LucideIcon;
   label: string;
