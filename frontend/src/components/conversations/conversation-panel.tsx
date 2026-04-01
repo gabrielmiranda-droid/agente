@@ -78,16 +78,16 @@ export function ConversationPanel({
 
   return (
     <Card className="flex h-full min-h-0 flex-col overflow-hidden">
-      <CardHeader className="sticky top-0 z-20 border-b bg-card/96 px-5 py-4 backdrop-blur">
+      <CardHeader className="sticky top-0 z-20 border-b bg-card/96 px-4 py-3 backdrop-blur">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.4rem] border bg-primary/10 text-base font-semibold text-primary">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.15rem] border bg-primary/10 text-base font-semibold text-primary">
               {getInitials(conversation.contact_name, conversation.contact_phone_number)}
             </div>
 
-            <div className="min-w-0 space-y-3">
+            <div className="min-w-0 space-y-2">
               <div>
-                <CardTitle className="truncate text-xl text-white">
+                <CardTitle className="truncate text-lg text-white">
                   {getContactDisplayName(conversation.contact_name, conversation.contact_phone_number)}
                 </CardTitle>
                 <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ export function ConversationPanel({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <Badge variant={conversation.human_handoff_active ? "warning" : "success"}>
                   {getConversationMode(conversation)}
                 </Badge>
@@ -121,16 +121,16 @@ export function ConversationPanel({
               <SlidersHorizontal className="h-4 w-4" />
               {showContextPanel ? "Ocultar painel" : "Painel"}
             </Button>
-            <Button variant="outline" className="rounded-2xl" onClick={() => void onHandoff()}>
+            <Button variant="outline" className="rounded-2xl px-4" onClick={() => void onHandoff()}>
               <UserCheck className="h-4 w-4" />
               Assumir humano
             </Button>
-            <Button variant="outline" className="rounded-2xl" onClick={() => void onReturnToAi()}>
+            <Button variant="outline" className="rounded-2xl px-4" onClick={() => void onReturnToAi()}>
               <Sparkles className="h-4 w-4" />
               Devolver para IA
             </Button>
             {!conversation.bot_enabled ? (
-              <Button variant="outline" className="rounded-2xl" onClick={() => void onResume()}>
+              <Button variant="outline" className="rounded-2xl px-4" onClick={() => void onResume()}>
                 <PlayCircle className="h-4 w-4" />
                 Reativar bot
               </Button>
@@ -140,7 +140,7 @@ export function ConversationPanel({
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
-        <div className="border-b bg-background/85 px-5 py-3 text-sm text-muted-foreground">
+        <div className="border-b bg-background/85 px-4 py-2.5 text-sm text-muted-foreground">
           {conversation.human_handoff_active ? (
             <span className="inline-flex items-center gap-2">
               <UserCheck className="h-4 w-4 text-amber-500" />
@@ -154,7 +154,7 @@ export function ConversationPanel({
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[linear-gradient(180deg,rgba(255,255,255,0.14),transparent_20%)] px-5 py-5 dark:bg-none">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[linear-gradient(180deg,rgba(255,255,255,0.14),transparent_20%)] px-4 py-4 dark:bg-none">
           {loadingMessages ? (
             <div className="space-y-4">
               <div className="h-20 w-2/3 rounded-[1.8rem] bg-muted" />
@@ -178,7 +178,7 @@ export function ConversationPanel({
           )}
         </div>
 
-        <div className="sticky bottom-0 border-t bg-background/96 px-5 py-4 backdrop-blur">
+        <div className="sticky bottom-0 border-t bg-background/96 px-4 py-3 backdrop-blur">
           <form
             className="flex flex-col gap-3 md:flex-row"
             onSubmit={form.handleSubmit(async (values) => {

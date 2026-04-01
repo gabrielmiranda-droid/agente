@@ -52,16 +52,16 @@ export function ConversationList({
             type="button"
             onClick={() => onSelect(conversation)}
             className={cn(
-              "w-full rounded-[1.55rem] border p-4 text-left transition-all",
+              "w-full rounded-[1.35rem] border p-3 text-left transition-all",
               selectedId === conversation.id
-                ? "border-primary/20 bg-primary/[0.08] shadow-[0_18px_45px_rgba(14,165,233,0.12)]"
+                ? "border-primary/20 bg-primary/[0.08] shadow-[0_16px_40px_rgba(14,165,233,0.10)]"
                 : "bg-card hover:border-primary/15 hover:bg-muted/35"
             )}
           >
             <div className="flex items-start gap-3">
               <div
                 className={cn(
-                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.15rem] text-sm font-semibold",
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] text-sm font-semibold",
                   selectedId === conversation.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground"
@@ -70,10 +70,10 @@ export function ConversationList({
                 {getInitials(conversation.contact_name, conversation.contact_phone_number)}
               </div>
 
-              <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">
+                    <p className="truncate text-sm font-semibold">
                       {getContactDisplayName(conversation.contact_name, conversation.contact_phone_number)}
                     </p>
                     <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
@@ -92,11 +92,11 @@ export function ConversationList({
                   </div>
                 </div>
 
-                <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
+                <p className="line-clamp-2 text-sm leading-5 text-muted-foreground">
                   {conversation.last_message_preview ?? "Sem mensagens registradas ainda."}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <Badge variant={conversation.human_handoff_active ? "warning" : "success"}>
                     {getConversationMode(conversation)}
                   </Badge>

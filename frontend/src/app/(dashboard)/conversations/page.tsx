@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  LayoutGrid,
   MessageSquareMore,
   PauseCircle,
   Search,
@@ -98,6 +97,12 @@ export default function ConversationsPage() {
     };
   }, [conversationsQuery.data]);
 
+  useEffect(() => {
+    if (selectedConversation) {
+      setIsContextOpen(false);
+    }
+  }, [selectedConversation?.id]);
+
   if (conversationsQuery.isLoading) {
     return (
       <LoadingState
@@ -116,23 +121,23 @@ export default function ConversationsPage() {
     );
   }
 
-  const desktopGrid = isContextOpen
-    ? "xl:grid-cols-[220px_minmax(0,1fr)_300px]"
-    : "xl:grid-cols-[220px_minmax(0,1fr)]";
+  const desktopLayout = isContextOpen
+    ? "xl:grid-cols-[280px_minmax(0,1fr)_320px]"
+    : "xl:grid-cols-[280px_minmax(0,1fr)]";
 
   return (
-    <div className="-mx-4 -mb-5 flex h-full min-h-0 flex-col overflow-hidden sm:-mx-6 lg:-mx-8 lg:-mb-8">
+    <div className="-mx-4 -mb-5 flex h-full min-h-0 w-[calc(100%+2rem)] flex-col overflow-hidden sm:-mx-6 sm:w-[calc(100%+3rem)] lg:-mx-8 lg:-mb-8 lg:w-[calc(100%+4rem)]">
       <div className="border-b border-white/6 px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
               <MessageSquareMore className="h-3.5 w-3.5" />
               Conversas
             </div>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white">Inbox operacional</h1>
+              <h1 className="text-3xl font-semibold tracking-tight text-white">Central de atendimento</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Chat dominante, acompanhamento rapido e intervencao humana sem perder contexto.
+                Inbox de operacao com foco total no chat, resposta rapida e contexto sob demanda.
               </p>
             </div>
           </div>
@@ -154,77 +159,76 @@ export default function ConversationsPage() {
       </div>
 
       <div className="min-h-0 flex-1 px-4 py-3 sm:px-6 lg:px-8 lg:py-4">
-        <div className={`grid h-full min-h-0 gap-3 ${desktopGrid}`}>
-          <Card className="flex min-h-0 flex-col overflow-hidden rounded-[1.6rem] border-white/8 bg-black/25">
-            <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/8 bg-white/[0.03] text-muted-foreground">
-                  <LayoutGrid className="h-4 w-4" />
-                </div>
+        <div className={`grid h-full min-h-0 gap-3 ${desktopLayout}`}>
+          <Card className="flex min-h-0 flex-col overflow-hidden rounded-[1.65rem] border-white/8 bg-black/35">
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+              <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-semibold text-white">Clientes</p>
-                  <p className="text-xs text-muted-foreground">Busca e filtros</p>
+                  <p className="text-base font-semibold text-white">Clientes</p>
+                  <p className="text-sm text-muted-foreground">Busca, filtros e fila ativa.</p>
+                </div>
+
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Buscar cliente ou mensagem..."
+                    className="h-11 rounded-2xl border-white/8 bg-black/20 pl-10"
+                  />
                 </div>
               </div>
 
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Buscar cliente ou mensagem..."
-                  className="h-11 rounded-2xl pl-10"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Modo</p>
-                <div className="flex flex-wrap gap-2">
-                  {(["all", "ai", "human"] as const).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setModeFilter(value)}
-                      className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                        modeFilter === value
-                          ? "border-primary/20 bg-primary text-primary-foreground"
-                          : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {value === "all" ? "Todos" : value === "ai" ? "IA atendendo" : "Humano"}
-                    </button>
-                  ))}
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Modo</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(["all", "ai", "human"] as const).map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setModeFilter(value)}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                          modeFilter === value
+                            ? "border-primary/20 bg-primary text-primary-foreground"
+                            : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {value === "all" ? "Todos" : value === "ai" ? "IA atendendo" : "Humano"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Situacao</p>
-                <div className="flex flex-wrap gap-2">
-                  {(["all", "open", "pending", "resolved"] as const).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setStatusFilter(value)}
-                      className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                        statusFilter === value
-                          ? "border-border bg-secondary text-secondary-foreground"
-                          : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {value === "all"
-                        ? "Todas"
-                        : value === "open"
-                          ? "Em aberto"
-                          : value === "pending"
-                            ? "Acompanhando"
-                            : "Encerradas"}
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Situacao</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(["all", "open", "pending", "resolved"] as const).map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setStatusFilter(value)}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                          statusFilter === value
+                            ? "border-border bg-secondary text-secondary-foreground"
+                            : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {value === "all"
+                          ? "Todas"
+                          : value === "open"
+                            ? "Em aberto"
+                            : value === "pending"
+                              ? "Acompanhando"
+                              : "Encerradas"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2">
-                <p className="text-sm text-muted-foreground">Resultado</p>
+                <p className="text-sm text-muted-foreground">Fila filtrada</p>
                 <Badge variant="neutral">{filteredConversations.length} conversas</Badge>
               </div>
 
