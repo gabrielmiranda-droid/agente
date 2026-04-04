@@ -331,6 +331,9 @@ class ConversationService:
         if draft_order is None:
             return None
 
+        self.db.commit()
+        self.db.refresh(draft_order)
+
         summary = self.order_flow_service.build_confirmation_message(draft_order)
         self._send_automated_outgoing_message(
             company_id=company_id,
@@ -339,13 +342,26 @@ class ConversationService:
             content=summary,
             source_message_id=message.id,
         )
-        self._send_confirmation_list(
-            company_id=company_id,
-            conversation=conversation,
-            instance=instance,
-            order=draft_order,
-            source_message_id=message.id,
-        )
+        try:
+            self._send_confirmation_list(
+                company_id=company_id,
+                conversation=conversation,
+                instance=instance,
+                order=draft_order,
+                source_message_id=message.id,
+            )
+        except (ExternalServiceError, IntegrationConfigurationError):
+            logger.exception(
+                "order_confirmation_list_failed",
+                extra={"company_id": company_id, "conversation_id": conversation.id, "order_id": draft_order.id},
+            )
+            self._send_automated_outgoing_message(
+                company_id=company_id,
+                conversation=conversation,
+                instance=instance,
+                content="Se preferir, responda SIM para confirmar, AJUSTAR para alterar ou CANCELAR para encerrar este pedido.",
+                source_message_id=message.id,
+            )
         return {"action": "draft_confirmation", "order_id": draft_order.id}
 
     def _send_automated_outgoing_message(self, *, company_id: int, conversation, instance, content: str, source_message_id: int):

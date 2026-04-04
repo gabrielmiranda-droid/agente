@@ -36,6 +36,57 @@ Fluxo principal:
 - Evolution API
 - OpenAI API
 
+## Estrutura de producao recomendada
+
+O repositorio agora inclui uma base pronta para subir em VPS com dominio:
+
+- `docker-compose.vps.yml`
+- `.env.production.example`
+- `deploy/production/Caddyfile`
+
+Arquitetura online:
+
+`Internet -> Caddy -> frontend Next.js + rotas /api -> FastAPI -> Redis/Postgres -> worker Celery`
+
+### Como subir online
+
+1. Copie o exemplo de ambiente:
+
+```powershell
+copy .env.production.example .env.production
+```
+
+2. Preencha pelo menos:
+
+- `APP_DOMAIN`
+- `LETSENCRYPT_EMAIL`
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL`
+- `SECRET_KEY`
+- `CORS_ORIGINS`
+- `OPENAI_API_KEY`
+
+3. Suba em producao:
+
+```powershell
+docker compose --env-file .env.production -f docker-compose.vps.yml up -d --build
+```
+
+4. URLs importantes depois do deploy:
+
+- painel: `https://seu-dominio`
+- health da API: `https://seu-dominio/health`
+- webhook Evolution: `https://seu-dominio/api/v1/webhooks/evolution`
+
+### Observacoes de deploy
+
+- o frontend em producao usa `NEXT_PUBLIC_API_BASE_URL=/api/v1`
+- o Caddy publica HTTPS automatico com Let's Encrypt
+- as rotas `/api/*`, `/health`, `/docs`, `/redoc` e `/openapi.json` sao enviadas para a API
+- o restante vai para o frontend
+- o worker sobe separado no mesmo compose
+- o `scripts/start.sh` roda `alembic upgrade head` antes da API iniciar
+
 ## Perfis
 
 ### `dev`
@@ -48,7 +99,7 @@ Pode:
 - ver metricas e suporte
 - operar uma empresa especifica via `companyId`
 
-### `attendant`
+### `client`
 
 Pode:
 

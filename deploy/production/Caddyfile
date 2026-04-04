@@ -1,0 +1,12 @@
+{
+  email {$LETSENCRYPT_EMAIL}
+}
+
+{$APP_DOMAIN} {
+  encode gzip zstd
+
+  @api path /api/* /health /docs /redoc /openapi.json
+  reverse_proxy @api api:8000
+
+  reverse_proxy frontend:3000
+}

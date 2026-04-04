@@ -303,11 +303,7 @@ class OrderFlowService:
         return matches
 
     def _merge_items(self, order: Order, matched_items: list[dict], company_id: int) -> float:
-        existing_by_product_id = {
-            item.product_id: item
-            for item in order.items
-            if item.product_id is not None
-        }
+        existing_by_product_id = {item.product_id: item for item in order.items if item.product_id is not None}
 
         for matched in matched_items:
             existing = existing_by_product_id.get(matched["product_id"])
@@ -316,10 +312,9 @@ class OrderFlowService:
                 existing.unit_price = matched["unit_price"]
                 existing.total_price = existing.quantity * matched["unit_price"]
             else:
-                self.db.add(
+                order.items.append(
                     OrderItem(
                         company_id=company_id,
-                        order_id=order.id,
                         product_id=matched["product_id"],
                         product_name=matched["product_name"],
                         quantity=matched["quantity"],

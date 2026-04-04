@@ -1,3 +1,5 @@
+from app.db.session import get_session_factory
+from app.models.whatsapp import WhatsAppInstance
 from app.services.idempotency_service import IdempotencyService
 from app.services.message_queue_service import MessageQueueService
 
@@ -6,11 +8,11 @@ def _auth_header(client):
     client.post(
         "/api/v1/auth/register-company",
         json={
-            "company_name": "Empresa Bot",
-            "company_slug": "empresa-bot",
-            "admin_name": "Admin Bot",
-            "admin_email": "admin@bot.com",
-            "admin_password": "ChangeMe123!",
+          "company_name": "Empresa Bot",
+          "company_slug": "empresa-bot",
+          "admin_name": "Admin Bot",
+          "admin_email": "admin@bot.com",
+          "admin_password": "ChangeMe123!"
         },
     )
     login = client.post(
@@ -20,22 +22,29 @@ def _auth_header(client):
     return {"Authorization": f"Bearer {login['access_token']}"}
 
 
+def _create_instance_for_company(company_id: int = 1) -> None:
+    session = get_session_factory()()
+    try:
+        session.add(
+            WhatsAppInstance(
+                company_id=company_id,
+                name="Principal",
+                instance_name="tenant-main",
+                api_base_url="http://evolution.local",
+                api_key="secret",
+                phone_number="5511999999999",
+                webhook_secret="hook-secret",
+                active=True,
+            )
+        )
+        session.commit()
+    finally:
+        session.close()
+
+
 def test_webhook_processes_message(client, monkeypatch) -> None:
-    headers = _auth_header(client)
-    create_instance = client.post(
-        "/api/v1/whatsapp-instances",
-        headers=headers,
-        json={
-            "name": "Principal",
-            "instance_name": "tenant-main",
-            "api_base_url": "http://evolution.local",
-            "api_key": "secret",
-            "phone_number": "5511999999999",
-            "webhook_secret": "hook-secret",
-            "active": True,
-        },
-    )
-    assert create_instance.status_code == 201
+    _auth_header(client)
+    _create_instance_for_company()
 
     monkeypatch.setattr(IdempotencyService, "acquire", lambda self, key: True)
     monkeypatch.setattr(MessageQueueService, "enqueue_incoming_message", lambda self, company_id, message_id: "task-1")
@@ -53,7 +62,7 @@ def test_webhook_processes_message(client, monkeypatch) -> None:
                     "id": "IN-1",
                 },
                 "pushName": "Cliente",
-                "message": {"conversation": "Olá"},
+                "message": {"conversation": "Ola"},
             },
         },
     )
@@ -64,21 +73,8 @@ def test_webhook_processes_message(client, monkeypatch) -> None:
 
 
 def test_webhook_ignores_group_message(client, monkeypatch) -> None:
-    headers = _auth_header(client)
-    create_instance = client.post(
-        "/api/v1/whatsapp-instances",
-        headers=headers,
-        json={
-            "name": "Principal",
-            "instance_name": "tenant-main",
-            "api_base_url": "http://evolution.local",
-            "api_key": "secret",
-            "phone_number": "5511999999999",
-            "webhook_secret": "hook-secret",
-            "active": True,
-        },
-    )
-    assert create_instance.status_code == 201
+    _auth_header(client)
+    _create_instance_for_company()
 
     monkeypatch.setattr(IdempotencyService, "acquire", lambda self, key: True)
     monkeypatch.setattr(MessageQueueService, "enqueue_incoming_message", lambda self, company_id, message_id: "task-1")
