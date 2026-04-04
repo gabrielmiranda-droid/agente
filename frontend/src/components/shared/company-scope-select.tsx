@@ -21,16 +21,16 @@ export function CompanyScopeSelect() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3 md:flex-row md:items-center md:px-5">
+    <div className="flex flex-col gap-3 rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-4 md:flex-row md:items-center md:px-5">
       <div className="space-y-1">
         <p className="text-sm font-medium text-white">Empresa em foco</p>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs leading-5 text-slate-400">
           Troque a conta ativa para revisar negocio, equipe, FAQ, cardapio e operacao sem sair do painel master.
         </p>
       </div>
       <select
         value={selectedValue}
-        className="ml-auto h-11 min-w-[220px] rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none focus-visible:border-primary"
+        className="h-11 min-w-[220px] rounded-[1.05rem] border border-border/80 bg-background/88 px-4 text-sm text-white outline-none transition duration-200 hover:border-border focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-primary/10 md:ml-auto"
         onChange={(event) => {
           const params = new URLSearchParams(searchParams.toString());
           if (!event.target.value) {

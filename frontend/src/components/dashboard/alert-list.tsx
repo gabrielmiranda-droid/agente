@@ -17,7 +17,7 @@ export function AlertList({ alerts }: { alerts: DashboardAlert[] }) {
       <CardContent className="space-y-3">
         {alerts.length ? (
           alerts.map((alert, index) => (
-            <div key={`${alert.title}-${index}`} className="flex items-start gap-3 rounded-xl border border-white/8 bg-black/20 p-4">
+            <div key={`${alert.title}-${index}`} className="flex items-start gap-3 rounded-[1.2rem] border border-white/8 bg-black/20 p-4">
               <div
                 className={
                   alert.severity === "critical"
@@ -29,16 +29,16 @@ export function AlertList({ alerts }: { alerts: DashboardAlert[] }) {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-white">{alert.title}</p>
-                <p className="mt-1 text-sm leading-6 text-slate-500">{alert.description}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-400">{alert.description}</p>
               </div>
             </div>
           ))
         ) : (
-          <div className="flex items-start gap-3 rounded-xl border border-white/8 bg-black/20 p-4">
+          <div className="flex items-start gap-3 rounded-[1.2rem] border border-white/8 bg-black/20 p-4">
             <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-400" />
             <div>
               <p className="text-sm font-medium text-white">Sem alertas no momento</p>
-              <p className="mt-1 text-sm leading-6 text-slate-500">Nenhum problema critico foi identificado com os dados atuais.</p>
+              <p className="mt-1 text-sm leading-6 text-slate-400">Nenhum problema critico foi identificado com os dados atuais.</p>
             </div>
           </div>
         )}

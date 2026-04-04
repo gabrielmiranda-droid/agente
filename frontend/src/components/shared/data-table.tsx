@@ -23,15 +23,15 @@ export function DataTable<T>({
   rowClassName?: string;
 }) {
   return (
-    <div className={cn("overflow-hidden rounded-[1.75rem] border bg-card/92 shadow-panel", className)}>
+    <div className={cn("overflow-hidden rounded-[1.55rem] border border-white/8 bg-card/92 shadow-panel", className)}>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-muted/35">
+          <thead className="bg-white/[0.04]">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-5 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+                  className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground first:pl-6 last:pr-6"
                 >
                   {column.header}
                 </th>
@@ -42,10 +42,10 @@ export function DataTable<T>({
             {data.map((item, index) => (
               <tr
                 key={rowKey ? rowKey(item, index) : index}
-                className={cn("border-t border-border/70 transition hover:bg-muted/25", rowClassName)}
+                className={cn("border-t border-white/6 transition-colors hover:bg-white/[0.03]", rowClassName)}
               >
                 {columns.map((column) => (
-                  <td key={column.key} className={cn("px-5 py-4 align-top", column.className)}>
+                  <td key={column.key} className={cn("px-5 py-4 align-middle first:pl-6 last:pr-6", column.className)}>
                     {column.cell(item)}
                   </td>
                 ))}

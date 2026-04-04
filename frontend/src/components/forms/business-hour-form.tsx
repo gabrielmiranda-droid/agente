@@ -11,15 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { businessHourSchema, type BusinessHourSchema } from "@/lib/validations/business";
 import type { BusinessHour } from "@/types/business";
 
-const days = [
-  "Domingo",
-  "Segunda-feira",
-  "Terça-feira",
-  "Quarta-feira",
-  "Quinta-feira",
-  "Sexta-feira",
-  "Sábado"
-];
+const days = ["Domingo", "Segunda-feira", "Terca-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sabado"];
 
 export function BusinessHourForm({
   hour,
@@ -53,7 +45,7 @@ export function BusinessHourForm({
     <form className="space-y-4" onSubmit={form.handleSubmit((values) => onSubmit(values))}>
       <FormField label="Dia da semana">
         <select
-          className="h-11 w-full rounded-xl border bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-11 w-full rounded-[1.05rem] border border-border/80 bg-background/88 px-4 text-sm outline-none transition duration-200 hover:border-border focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-primary/10"
           {...form.register("day_of_week")}
         >
           {days.map((day, index) => (
@@ -63,6 +55,7 @@ export function BusinessHourForm({
           ))}
         </select>
       </FormField>
+
       <div className="grid gap-4 md:grid-cols-2">
         <FormField label="Abertura">
           <Input type="time" {...form.register("open_time")} />
@@ -71,12 +64,16 @@ export function BusinessHourForm({
           <Input type="time" {...form.register("close_time")} />
         </FormField>
       </div>
-      <div className="rounded-2xl border p-4">
-        <p className="font-medium">Horário ativo</p>
-        <p className="mb-3 text-xs text-muted-foreground">Desative dias em que a empresa não atende.</p>
+
+      <div className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] p-4">
+        <p className="font-medium">Horario ativo</p>
+        <p className="mb-3 text-xs text-muted-foreground">Desative dias em que a empresa nao atende.</p>
         <Switch checked={form.watch("active")} onCheckedChange={(value) => form.setValue("active", value)} />
       </div>
-      <Button type="submit" disabled={loading}>{loading ? "Salvando..." : "Salvar horário"}</Button>
+
+      <Button type="submit" disabled={loading}>
+        {loading ? "Salvando..." : "Salvar horario"}
+      </Button>
     </form>
   );
 }

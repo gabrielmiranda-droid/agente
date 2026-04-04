@@ -94,7 +94,7 @@ export function BusinessProfileForm({
           <FormField label="Tempo estimado">
             <Input {...form.register("estimated_delivery_time")} placeholder="30 a 45 min" />
           </FormField>
-          <div className="rounded-2xl border bg-background/85 p-4">
+          <div className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] p-4">
             <p className="font-medium">Retirada no local</p>
             <p className="mb-3 text-xs text-muted-foreground">Ative se o cliente puder buscar o pedido na loja.</p>
             <Switch checked={form.watch("accepts_pickup")} onCheckedChange={(value) => form.setValue("accepts_pickup", value)} />

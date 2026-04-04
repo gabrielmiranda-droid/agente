@@ -45,7 +45,7 @@ export function ProductAddonForm({
     <form className="space-y-4" onSubmit={form.handleSubmit((values) => onSubmit(values))}>
       <FormField label="Produto" error={form.formState.errors.product_id?.message}>
         <select
-          className="h-11 w-full rounded-xl border bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-11 w-full rounded-[1.05rem] border border-border/80 bg-background/88 px-4 text-sm outline-none transition duration-200 hover:border-border focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-primary/10"
           {...form.register("product_id")}
         >
           <option value={0}>Selecione um produto</option>
@@ -56,18 +56,24 @@ export function ProductAddonForm({
           ))}
         </select>
       </FormField>
+
       <FormField label="Nome do adicional" error={form.formState.errors.name?.message}>
         <Input {...form.register("name")} />
       </FormField>
-      <FormField label="Preço" error={form.formState.errors.price?.message}>
+
+      <FormField label="Preco" error={form.formState.errors.price?.message}>
         <Input type="number" step="0.01" {...form.register("price")} />
       </FormField>
-      <div className="rounded-2xl border p-4">
+
+      <div className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] p-4">
         <p className="font-medium">Adicional ativo</p>
         <p className="mb-3 text-xs text-muted-foreground">Use para controlar a disponibilidade do adicional.</p>
         <Switch checked={form.watch("active")} onCheckedChange={(value) => form.setValue("active", value)} />
       </div>
-      <Button type="submit" disabled={loading}>{loading ? "Salvando..." : "Salvar adicional"}</Button>
+
+      <Button type="submit" disabled={loading}>
+        {loading ? "Salvando..." : "Salvar adicional"}
+      </Button>
     </form>
   );
 }

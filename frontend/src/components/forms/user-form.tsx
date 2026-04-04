@@ -57,7 +57,7 @@ export function UserForm({
         error={form.formState.errors.role?.message}
       >
         <select
-          className="h-12 w-full rounded-2xl border border-border/80 bg-background/95 px-4 text-sm font-medium outline-none transition duration-200 hover:border-border focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-primary/10"
+          className="h-11 w-full rounded-[1.05rem] border border-border/80 bg-background/88 px-4 text-sm outline-none transition duration-200 hover:border-border focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-primary/10"
           {...form.register("role")}
         >
           <option value="client">Cliente Operacional</option>

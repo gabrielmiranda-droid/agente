@@ -150,7 +150,7 @@ export function CompanyForm({
             error={form.formState.errors.status?.message}
           >
             <select
-              className="h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-sm font-medium text-white outline-none transition hover:border-white/20 focus-visible:border-primary"
+              className="h-11 w-full rounded-[1.05rem] border border-border/80 bg-background/88 px-4 text-sm text-white outline-none transition duration-200 hover:border-border focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-primary/10"
               {...form.register("status")}
             >
               <option value="active">Ativa</option>
@@ -160,10 +160,10 @@ export function CompanyForm({
           </FormField>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl border border-white/8 bg-black/20 p-4">
+        <div className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-white/8 bg-white/[0.03] p-4">
           <div>
             <p className="font-medium text-white">Bot pausado globalmente</p>
-            <p className="text-sm text-slate-500">Interrompe a automacao em todas as conversas da empresa.</p>
+            <p className="text-sm text-slate-400">Interrompe a automacao em todas as conversas da empresa.</p>
           </div>
           <Switch checked={form.watch("bot_paused")} onCheckedChange={(value) => form.setValue("bot_paused", value)} />
         </div>

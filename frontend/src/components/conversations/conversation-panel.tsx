@@ -1,16 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Bot,
-  Phone,
-  PlayCircle,
-  SendHorizonal,
-  SlidersHorizontal,
-  Sparkles,
-  UserCheck,
-  UserRoundCog,
-} from "lucide-react";
+import { Bot, Phone, PlayCircle, SendHorizonal, SlidersHorizontal, Sparkles, UserCheck, UserRoundCog } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -19,15 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { manualMessageSchema, type ManualMessageSchema } from "@/lib/validations/conversation";
 import {
   formatDateTime,
   formatPhoneNumber,
   getContactDisplayName,
   getConversationMode,
   getConversationStatusLabel,
-  getInitials,
+  getInitials
 } from "@/lib/formatters";
+import { manualMessageSchema, type ManualMessageSchema } from "@/lib/validations/conversation";
 import type { Conversation, Message } from "@/types/conversation";
 
 export function ConversationPanel({
@@ -40,7 +31,7 @@ export function ConversationPanel({
   onReturnToAi,
   onResume,
   showContextPanel,
-  onToggleContextPanel,
+  onToggleContextPanel
 }: {
   conversation: Conversation | null;
   messages: Message[];
@@ -55,18 +46,18 @@ export function ConversationPanel({
 }) {
   const form = useForm<ManualMessageSchema>({
     resolver: zodResolver(manualMessageSchema),
-    defaultValues: { content: "" },
+    defaultValues: { content: "" }
   });
 
   if (!conversation) {
     return (
-      <Card className="h-full min-h-0">
+      <Card className="flex h-full min-h-0 flex-col">
         <CardContent className="flex h-full min-h-[520px] items-center justify-center p-6">
           <div className="max-w-md space-y-4 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[1.6rem] border bg-accent text-accent-foreground">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[1.6rem] border border-white/10 bg-accent/60 text-accent-foreground">
               <UserRoundCog className="h-6 w-6" />
             </div>
-            <p className="text-xl font-semibold">Selecione uma conversa</p>
+            <p className="text-xl font-semibold text-white">Selecione uma conversa</p>
             <p className="text-sm leading-6 text-muted-foreground">
               Abra um cliente na lateral para acompanhar o historico, responder manualmente e operar o atendimento.
             </p>
@@ -78,10 +69,10 @@ export function ConversationPanel({
 
   return (
     <Card className="flex h-full min-h-0 flex-col overflow-hidden">
-      <CardHeader className="sticky top-0 z-20 border-b bg-card/96 px-4 py-3 backdrop-blur">
+      <CardHeader className="border-b border-white/6 bg-card/96 px-5 py-4 backdrop-blur">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.15rem] border bg-primary/10 text-base font-semibold text-primary">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.1rem] border border-primary/15 bg-primary/10 text-base font-semibold text-primary">
               {getInitials(conversation.contact_name, conversation.contact_phone_number)}
             </div>
 
@@ -90,7 +81,7 @@ export function ConversationPanel({
                 <CardTitle className="truncate text-lg text-white">
                   {getContactDisplayName(conversation.contact_name, conversation.contact_phone_number)}
                 </CardTitle>
-                <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1.5">
                     <Phone className="h-3.5 w-3.5" />
                     {formatPhoneNumber(conversation.contact_phone_number)}
@@ -104,8 +95,10 @@ export function ConversationPanel({
                 <Badge variant={conversation.human_handoff_active ? "warning" : "success"}>
                   {getConversationMode(conversation)}
                 </Badge>
-                <Badge variant="neutral">{getConversationStatusLabel(conversation.status)}</Badge>
-                <Badge variant={conversation.bot_enabled ? "default" : "danger"}>
+                <Badge variant={conversation.status === "resolved" ? "success" : conversation.status === "pending" ? "neutral" : "default"}>
+                  {getConversationStatusLabel(conversation.status)}
+                </Badge>
+                <Badge variant={conversation.bot_enabled ? "neutral" : "danger"}>
                   {conversation.bot_enabled ? "Bot ativo" : "Bot pausado"}
                 </Badge>
               </div>
@@ -113,24 +106,20 @@ export function ConversationPanel({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              className="rounded-2xl xl:hidden"
-              onClick={onToggleContextPanel}
-            >
+            <Button variant="outline" size="sm" className="2xl:hidden" onClick={onToggleContextPanel}>
               <SlidersHorizontal className="h-4 w-4" />
-              {showContextPanel ? "Ocultar painel" : "Painel"}
+              {showContextPanel ? "Ocultar painel" : "Contexto"}
             </Button>
-            <Button variant="outline" className="rounded-2xl px-4" onClick={() => void onHandoff()}>
+            <Button variant="outline" size="sm" onClick={() => void onHandoff()}>
               <UserCheck className="h-4 w-4" />
               Assumir humano
             </Button>
-            <Button variant="outline" className="rounded-2xl px-4" onClick={() => void onReturnToAi()}>
+            <Button variant="outline" size="sm" onClick={() => void onReturnToAi()}>
               <Sparkles className="h-4 w-4" />
               Devolver para IA
             </Button>
             {!conversation.bot_enabled ? (
-              <Button variant="outline" className="rounded-2xl px-4" onClick={() => void onResume()}>
+              <Button variant="outline" size="sm" onClick={() => void onResume()}>
                 <PlayCircle className="h-4 w-4" />
                 Reativar bot
               </Button>
@@ -139,11 +128,11 @@ export function ConversationPanel({
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
-        <div className="border-b bg-background/85 px-4 py-2.5 text-sm text-muted-foreground">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+        <div className="border-b border-white/6 bg-white/[0.02] px-5 py-3 text-sm text-muted-foreground">
           {conversation.human_handoff_active ? (
             <span className="inline-flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-amber-500" />
+              <UserCheck className="h-4 w-4 text-amber-400" />
               Atendimento em modo humano. A IA esta temporariamente bloqueada para esta conversa.
             </span>
           ) : (
@@ -154,33 +143,33 @@ export function ConversationPanel({
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[linear-gradient(180deg,rgba(255,255,255,0.14),transparent_20%)] px-4 py-4 dark:bg-none">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 lg:px-6">
           {loadingMessages ? (
-            <div className="space-y-4">
-              <div className="h-20 w-2/3 rounded-[1.8rem] bg-muted" />
-              <div className="ml-auto h-24 w-1/2 rounded-[1.8rem] bg-primary/15" />
-              <div className="h-16 w-3/5 rounded-[1.8rem] bg-muted" />
+            <div className="space-y-4 animate-pulse">
+              <div className="h-20 w-2/3 rounded-[1.5rem] bg-white/[0.05]" />
+              <div className="ml-auto h-24 w-1/2 rounded-[1.5rem] bg-primary/15" />
+              <div className="h-16 w-3/5 rounded-[1.5rem] bg-white/[0.05]" />
             </div>
           ) : messageLoadError ? (
-            <div className="rounded-3xl border border-dashed p-6 text-sm text-muted-foreground">
+            <div className="rounded-[1.35rem] border border-dashed border-white/10 bg-white/[0.02] p-5 text-sm text-muted-foreground">
               Nao foi possivel carregar as mensagens desta conversa agora.
             </div>
           ) : messages.length ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {messages.map((message) => (
                 <MessageBubble key={message.id} message={message} />
               ))}
             </div>
           ) : (
-            <div className="rounded-3xl border border-dashed p-6 text-sm text-muted-foreground">
+            <div className="rounded-[1.35rem] border border-dashed border-white/10 bg-white/[0.02] p-5 text-sm text-muted-foreground">
               Ainda nao ha mensagens registradas nesta conversa.
             </div>
           )}
         </div>
 
-        <div className="sticky bottom-0 border-t bg-background/96 px-4 py-3 backdrop-blur">
+        <div className="border-t border-white/6 bg-card/96 px-4 py-4 backdrop-blur lg:px-5">
           <form
-            className="flex flex-col gap-3 md:flex-row"
+            className="flex flex-col gap-3 lg:flex-row"
             onSubmit={form.handleSubmit(async (values) => {
               try {
                 await onSend(values);
@@ -193,17 +182,16 @@ export function ConversationPanel({
           >
             <Input
               placeholder="Digite uma resposta manual para esta conversa..."
-              className="h-12 flex-1 rounded-[1.35rem] border-white/10 bg-black/25 px-5"
+              className="flex-1"
+              disabled={form.formState.isSubmitting}
               {...form.register("content")}
             />
-            <Button type="submit" className="h-12 rounded-[1.35rem] px-6 shadow-[0_18px_35px_rgba(249,115,22,0.22)]">
+            <Button type="submit" disabled={form.formState.isSubmitting} aria-busy={form.formState.isSubmitting}>
               <SendHorizonal className="h-4 w-4" />
-              Enviar mensagem
+              {form.formState.isSubmitting ? "Enviando..." : "Enviar mensagem"}
             </Button>
           </form>
-          {form.formState.errors.content ? (
-            <p className="mt-2 text-xs text-rose-500">{form.formState.errors.content.message}</p>
-          ) : null}
+          {form.formState.errors.content ? <p className="mt-2 text-xs font-medium text-rose-300">{form.formState.errors.content.message}</p> : null}
         </div>
       </CardContent>
     </Card>

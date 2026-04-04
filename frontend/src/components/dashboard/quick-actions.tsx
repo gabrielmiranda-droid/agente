@@ -20,10 +20,10 @@ export function QuickActions({ actions }: { actions: QuickActionItem[] }) {
           <Link
             key={action.href}
             href={action.href}
-            className="rounded-xl border border-white/8 bg-black/20 p-4 transition hover:bg-white/[0.04]"
+            className="rounded-[1.2rem] border border-white/8 bg-black/20 p-4 transition hover:border-white/12 hover:bg-white/[0.04]"
           >
             <p className="text-sm font-medium text-white">{action.title}</p>
-            <p className="mt-1 text-sm leading-6 text-slate-500">{action.description}</p>
+            <p className="mt-1 text-sm leading-6 text-slate-400">{action.description}</p>
             <span className="mt-4 inline-flex items-center gap-2 text-sm text-primary">
               Abrir
               <ArrowRight className="h-4 w-4" />

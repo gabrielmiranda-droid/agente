@@ -16,7 +16,7 @@ export function StatCard({
   compact?: boolean;
 }) {
   return (
-    <Card className="overflow-hidden border-white/8 bg-gradient-to-br from-white/[0.05] via-white/[0.03] to-black/30 backdrop-blur-xl">
+    <Card className="h-full overflow-hidden border-white/8 bg-gradient-to-br from-white/[0.05] via-white/[0.03] to-black/30 backdrop-blur-xl">
       <CardHeader className={compact ? "pb-2" : "pb-3"}>
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1">
@@ -30,7 +30,7 @@ export function StatCard({
       </CardHeader>
       <CardContent className={compact ? "pt-0" : ""}>
         <div className={compact ? "text-2xl font-semibold tracking-tight text-white" : "text-3xl font-semibold tracking-tight text-white"}>{value}</div>
-        {hint ? <p className={compact ? "mt-1 max-w-xs text-xs leading-5 text-slate-500" : "mt-2 max-w-xs text-sm leading-6 text-slate-500"}>{hint}</p> : null}
+        {hint ? <p className={compact ? "mt-1 max-w-xs text-xs leading-5 text-slate-400" : "mt-2 max-w-xs text-sm leading-6 text-slate-400"}>{hint}</p> : null}
       </CardContent>
     </Card>
   );
