@@ -33,7 +33,16 @@ class OrderFlowService:
             .where(
                 Order.company_id == company_id,
                 Order.conversation_id == conversation_id,
-                Order.status.in_(["new", "pending_confirmation", "confirmed", "in_preparation", "out_for_delivery", "ready_for_pickup"]),
+                Order.status.in_(
+                    [
+                        "new",
+                        "pending_confirmation",
+                        "confirmed",
+                        "in_preparation",
+                        "out_for_delivery",
+                        "ready_for_pickup",
+                    ]
+                ),
             )
             .options(joinedload(Order.items), joinedload(Order.print_jobs))
             .order_by(Order.created_at.desc())
@@ -61,6 +70,7 @@ class OrderFlowService:
     def is_textual_confirmation(self, text: str) -> bool:
         normalized = self._normalize(text)
         confirmation_terms = {
+            "s",
             "sim",
             "pode",
             "pode confirmar",
@@ -84,10 +94,9 @@ class OrderFlowService:
             "cancelar",
             "cancela",
             "nao quero",
-            "não quero",
             "deixa",
             "deixa pra la",
-            "deixa pra lá",
+            "deixa pra la mesmo",
         }
         return normalized in cancellation_terms
 
@@ -116,31 +125,26 @@ class OrderFlowService:
             ]
         )
 
-    def should_offer_confirmation(self, text: str) -> bool:
-        normalized = text.lower()
+    def should_offer_confirmation(self, text: str, matched_product_count: int = 0) -> bool:
+        normalized = self._normalize(text)
         purchase_terms = [
             "quero",
-            "pedido",
             "pedir",
             "me ve",
+            "me de",
+            "gostaria de",
             "manda",
             "traz",
             "separa",
             "adiciona",
             "adicionar",
-            "combo",
-            "marmita",
-            "lanche",
-            "hamburguer",
-            "burger",
-            "pizza",
-            "coca",
-            "guarana",
-            "suco",
-            "cerveja",
-            "refrigerante",
+            "fechar pedido",
+            "monta um pedido",
+            "fazer um pedido",
         ]
-        return any(term in normalized for term in purchase_terms)
+        has_explicit_intent = any(term in normalized for term in purchase_terms)
+        has_quantity_hint = bool(re.search(r"\b\d+\s*x?\b", normalized))
+        return has_explicit_intent or has_quantity_hint or matched_product_count >= 2
 
     def update_order_context_from_text(self, order: Order, text: str) -> bool:
         original = (
@@ -185,6 +189,9 @@ class OrderFlowService:
         if order and order.status not in {"new", "pending_confirmation"}:
             order = None
 
+        if order is None and not self.should_offer_confirmation(text, len(matched_items)):
+            return None
+
         if not matched_items and order is None:
             return None
 
@@ -207,6 +214,7 @@ class OrderFlowService:
             self.db.flush()
         else:
             order.status = "pending_confirmation"
+
         self.update_order_context_from_text(order, text)
         subtotal = self._merge_items(order, matched_items, company_id)
         order.delivery_fee = order.delivery_fee or 0
@@ -224,6 +232,9 @@ class OrderFlowService:
             "Posso confirmar esse pedido agora?",
         ]
         return " ".join(pieces)
+
+    def build_pending_context_message(self, order: Order) -> str:
+        return f"{self.build_confirmation_message(order)} Se estiver tudo certo, responda SIM."
 
     def build_post_confirmation_message(self, order: Order) -> str:
         if order.fulfillment_type == "delivery":
@@ -367,9 +378,9 @@ class OrderFlowService:
         return match.group(1).strip() if match else None
 
     def _extract_notes(self, text: str) -> str | None:
-        lower = text.lower()
-        note_markers = ["sem ", "tirar ", "obs", "observacao", "observação"]
-        if any(marker in lower for marker in note_markers):
+        normalized = self._normalize(text)
+        note_markers = ["sem ", "tirar ", "obs", "observacao"]
+        if any(marker in normalized for marker in note_markers):
             return text.strip()
         return None
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user, require_dev, require_roles, resolve_company_id
+from app.core.dependencies import get_current_user, require_roles, resolve_company_id
 from app.db.session import get_db
 from app.schemas.conversation import (
     ConversationResponse,
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/conversations", tags=["conversations"])
 @router.get("", response_model=list[ConversationResponse])
 def list_conversations(
     company_id: int = Depends(resolve_company_id),
-    _: object = Depends(require_roles("dev", "attendant")),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ) -> list[ConversationResponse]:
     items = ConversationService(db).list_conversations(company_id)
@@ -31,7 +31,7 @@ def list_conversations(
 def list_messages(
     conversation_id: int,
     company_id: int = Depends(resolve_company_id),
-    _: object = Depends(require_roles("dev", "attendant")),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ) -> list[MessageResponse]:
     items = ConversationService(db).list_messages(company_id, conversation_id)
@@ -43,7 +43,7 @@ def update_conversation(
     conversation_id: int,
     payload: ConversationUpdate,
     company_id: int = Depends(resolve_company_id),
-    _: object = Depends(require_roles("dev", "attendant")),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ) -> ConversationResponse:
     item = ConversationService(db).update_conversation(company_id, conversation_id, payload)
@@ -55,7 +55,7 @@ def start_handoff(
     conversation_id: int,
     payload: HandoffRequest,
     company_id: int = Depends(resolve_company_id),
-    _: object = Depends(require_roles("dev", "attendant")),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ):
     handoff = AgentService(db).start_handoff(company_id, conversation_id, payload)
@@ -67,7 +67,7 @@ def close_handoff(
     conversation_id: int,
     payload: HandoffCloseRequest,
     company_id: int = Depends(resolve_company_id),
-    _: object = Depends(require_roles("dev", "attendant")),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ):
     AgentService(db).close_handoff(company_id, conversation_id, payload.restore_bot)
@@ -78,7 +78,7 @@ def close_handoff(
 def pause_bot(
     conversation_id: int,
     company_id: int = Depends(resolve_company_id),
-    _: object = Depends(require_dev),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ):
     item = ConversationService(db).update_conversation(
@@ -93,7 +93,7 @@ def pause_bot(
 def resume_bot(
     conversation_id: int,
     company_id: int = Depends(resolve_company_id),
-    _: object = Depends(require_dev),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ):
     item = ConversationService(db).update_conversation(
@@ -110,7 +110,7 @@ async def send_manual_message(
     payload: ManualMessageCreate,
     company_id: int = Depends(resolve_company_id),
     current_user=Depends(get_current_user),
-    _: object = Depends(require_roles("dev", "attendant")),
+    _: object = Depends(require_roles("dev", "client", "attendant")),
     db: Session = Depends(get_db),
 ) -> MessageResponse:
     item = await ConversationService(db).send_manual_message(company_id, conversation_id, current_user, payload.content)

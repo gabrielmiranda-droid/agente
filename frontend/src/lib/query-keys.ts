@@ -5,8 +5,8 @@ export const queryKeys = {
   agents: (companyId?: number) => ["agents", companyId ?? "me"] as const,
   knowledge: (companyId?: number) => ["knowledge", companyId ?? "me"] as const,
   conversations: (companyId?: number) => ["conversations", companyId ?? "me"] as const,
-  conversationMessages: (conversationId?: number) =>
-    ["conversation-messages", conversationId ?? "none"] as const,
+  conversationMessages: (conversationId?: number, companyId?: number) =>
+    ["conversation-messages", companyId ?? "me", conversationId ?? "none"] as const,
   metrics: (companyId?: number) => ["metrics", companyId ?? "me"] as const,
   plans: ["plans"] as const,
   subscription: ["subscription"] as const,

@@ -23,6 +23,17 @@ def _float(value: Decimal | float | int | None) -> float:
 
 
 class OperationsService:
+    ALLOWED_STATUS_TRANSITIONS = {
+        "new": {"pending_confirmation", "confirmed", "cancelled"},
+        "pending_confirmation": {"confirmed", "cancelled"},
+        "confirmed": {"in_preparation", "out_for_delivery", "ready_for_pickup", "completed", "cancelled"},
+        "in_preparation": {"out_for_delivery", "ready_for_pickup", "completed", "cancelled"},
+        "out_for_delivery": {"completed", "cancelled"},
+        "ready_for_pickup": {"completed", "cancelled"},
+        "completed": set(),
+        "cancelled": set(),
+    }
+
     def __init__(self, db: Session) -> None:
         self.db = db
 
@@ -41,7 +52,14 @@ class OperationsService:
             self.db.scalars(select(InventoryItem).where(InventoryItem.company_id == company_id).order_by(InventoryItem.name.asc())).all()
         )
 
-    def update_order_status(self, company_id: int, order_id: int, status: str) -> Order:
+    def update_order_status(
+        self,
+        company_id: int,
+        order_id: int,
+        status: str,
+        *,
+        conversation_id: int | None = None,
+    ) -> Order:
         order = self.db.scalar(
             select(Order)
             .where(Order.company_id == company_id, Order.id == order_id)
@@ -50,6 +68,16 @@ class OperationsService:
         if order is None:
             raise NotFoundError("Pedido nao encontrado")
 
+        if conversation_id is not None and order.conversation_id != conversation_id:
+            raise NotFoundError("Pedido nao encontrado para esta conversa")
+
+        current_status = order.status
+        if current_status != status:
+            allowed_statuses = self.ALLOWED_STATUS_TRANSITIONS.get(current_status, set())
+            if status not in allowed_statuses:
+                raise NotFoundError("Transicao de status nao permitida")
+
+        self._validate_order_for_status(order, status)
         order.status = status
         if status == "confirmed":
             self._ensure_confirmed_print_jobs(order)
@@ -63,6 +91,15 @@ class OperationsService:
         )
         assert refreshed is not None
         return refreshed
+
+    def _validate_order_for_status(self, order: Order, status: str) -> None:
+        if status == "confirmed":
+            if not order.items:
+                raise NotFoundError("Pedido sem itens nao pode ser confirmado")
+            if _float(order.total_amount) <= 0:
+                raise NotFoundError("Pedido com total zerado nao pode ser confirmado")
+            if order.fulfillment_type == "delivery" and not order.delivery_address:
+                raise NotFoundError("Pedido de entrega precisa de endereco antes da confirmacao")
 
     def _ensure_confirmed_print_jobs(self, order: Order) -> None:
         existing_targets = {

@@ -268,12 +268,25 @@ class ConversationService:
         action = self.order_flow_service.extract_confirmation_action(message.content)
         if action is not None:
             action_name, order_id = action
+            if pending_order is None or pending_order.id != order_id:
+                logger.warning(
+                    "order_confirmation_action_ignored",
+                    extra={
+                        "company_id": company_id,
+                        "conversation_id": conversation.id,
+                        "message_id": message.id,
+                        "requested_order_id": order_id,
+                        "pending_order_id": pending_order.id if pending_order else None,
+                    },
+                )
+                return None
             order = self.operations_service.update_order_status(
                 company_id,
                 order_id,
-                "confirmed" if action_name == OrderFlowService.CONFIRM_ACTION else (
-                    "cancelled" if action_name == OrderFlowService.CANCEL_ACTION else "pending_confirmation"
-                ),
+                "confirmed"
+                if action_name == OrderFlowService.CONFIRM_ACTION
+                else ("cancelled" if action_name == OrderFlowService.CANCEL_ACTION else "pending_confirmation"),
+                conversation_id=conversation.id,
             )
             if action_name == OrderFlowService.CONFIRM_ACTION:
                 reply = self.order_flow_service.build_post_confirmation_message(order)
@@ -295,7 +308,12 @@ class ConversationService:
             context_updated = self.order_flow_service.update_order_context_from_text(pending_order, message.content)
 
             if self.order_flow_service.is_textual_cancellation(message.content):
-                order = self.operations_service.update_order_status(company_id, pending_order.id, "cancelled")
+                order = self.operations_service.update_order_status(
+                    company_id,
+                    pending_order.id,
+                    "cancelled",
+                    conversation_id=conversation.id,
+                )
                 self._send_automated_outgoing_message(
                     company_id=company_id,
                     conversation=conversation,
@@ -305,11 +323,13 @@ class ConversationService:
                 )
                 return {"action": OrderFlowService.CANCEL_ACTION, "order_id": order.id}
 
-            should_confirm_from_text = self.order_flow_service.is_textual_confirmation(message.content) or (
-                context_updated and self.order_flow_service.has_checkout_context(message.content)
-            )
-            if should_confirm_from_text:
-                order = self.operations_service.update_order_status(company_id, pending_order.id, "confirmed")
+            if self.order_flow_service.is_textual_confirmation(message.content):
+                order = self.operations_service.update_order_status(
+                    company_id,
+                    pending_order.id,
+                    "confirmed",
+                    conversation_id=conversation.id,
+                )
                 self._send_automated_outgoing_message(
                     company_id=company_id,
                     conversation=conversation,
@@ -319,8 +339,17 @@ class ConversationService:
                 )
                 return {"action": OrderFlowService.CONFIRM_ACTION, "order_id": order.id}
 
-        if not self.order_flow_service.should_offer_confirmation(message.content):
-            return None
+            if context_updated and self.order_flow_service.has_checkout_context(message.content):
+                self.db.commit()
+                self.db.refresh(pending_order)
+                self._send_automated_outgoing_message(
+                    company_id=company_id,
+                    conversation=conversation,
+                    instance=instance,
+                    content=self.order_flow_service.build_pending_context_message(pending_order),
+                    source_message_id=message.id,
+                )
+                return {"action": "pending_update", "order_id": pending_order.id}
 
         draft_order = self.order_flow_service.build_or_update_draft_order(
             company_id=company_id,

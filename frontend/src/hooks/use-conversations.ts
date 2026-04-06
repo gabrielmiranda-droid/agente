@@ -24,7 +24,7 @@ export function useConversations(companyId?: number) {
 
 export function useConversationMessages(conversationId?: number, companyId?: number) {
   return useQuery({
-    queryKey: queryKeys.conversationMessages(conversationId),
+    queryKey: queryKeys.conversationMessages(conversationId, companyId),
     queryFn: () => getConversationMessages(conversationId as number, companyId),
     enabled: Boolean(conversationId),
     refetchInterval: conversationId ? 5_000 : false
@@ -36,7 +36,7 @@ export function useConversationActions(conversationId?: number, companyId?: numb
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.conversations(companyId) });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.conversationMessages(conversationId) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.conversationMessages(conversationId, companyId) });
   };
 
   return {

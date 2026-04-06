@@ -37,7 +37,7 @@ async function parseErrorResponse(response: Response) {
   }
 
   const text = await response.text().catch(() => "");
-  return text || "Falha na comunicação com a API";
+  return text || "Falha na comunicacao com a API";
 }
 
 async function refreshAccessToken() {
@@ -47,17 +47,26 @@ async function refreshAccessToken() {
     return null;
   }
 
-  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ refresh_token: refreshToken })
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+  } catch {
+    throw new ApiError("Falha temporaria ao renovar a sessao.", 503);
+  }
 
-  if (!response.ok) {
+  if (response.status === 401 || response.status === 403) {
     destroySession();
     return null;
+  }
+
+  if (!response.ok) {
+    throw new ApiError(await parseErrorResponse(response), response.status);
   }
 
   const tokens = (await response.json()) as AuthTokens;
@@ -81,7 +90,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (response.status === 401 && authenticated && retryOnUnauthorized) {
     const refreshedToken = await refreshAccessToken();
     if (!refreshedToken) {
-      throw new ApiError("Sessão expirada. Faça login novamente.", 401);
+      throw new ApiError("Sessao expirada. Faca login novamente.", 401);
     }
 
     return apiRequest<T>(path, {
