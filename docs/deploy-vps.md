@@ -1,8 +1,9 @@
 # Deploy na VPS
 
-Este projeto pode ser publicado com um unico dominio usando:
+Este projeto pode ser publicado de dois jeitos:
 
 - `docker-compose.vps.yml`
+- `docker-compose.proxy.yml`
 - `.env.production`
 - `deploy/production/Caddyfile`
 
@@ -26,24 +27,35 @@ Preencha no minimo:
 
 ## 2. Subir os containers
 
+### EasyPanel ou proxy externo
+
 ```powershell
 docker compose --env-file .env.production -f docker-compose.vps.yml up -d --build
 ```
 
-Servicos esperados:
+### VPS crua com Caddy do proprio repositorio
+
+```powershell
+docker compose --env-file .env.production -f docker-compose.vps.yml -f docker-compose.proxy.yml up -d --build
+```
+
+Servicos base esperados:
 
 - `db`
 - `redis`
 - `api`
 - `worker`
 - `frontend`
+
+Se usar proxy proprio, tambem:
+
 - `proxy`
 
 ## 3. Validar
 
 Checklist:
 
-- painel respondendo em `https://seu-dominio`
+- painel respondendo no dominio publicado pelo EasyPanel ou Caddy
 - health da API em `https://seu-dominio/health`
 - webhook da Evolution apontando para `https://seu-dominio/api/v1/webhooks/evolution`
 
@@ -56,7 +68,8 @@ docker compose --env-file .env.production -f docker-compose.vps.yml up -d --buil
 
 ## Observacoes
 
-- o frontend usa a API no mesmo dominio, via `/api/v1`
-- o Caddy cuida do HTTPS automaticamente
+- o frontend usa proxy interno para a API via `/backend`
+- no EasyPanel, normalmente basta publicar o servico `frontend`
+- o Caddy e opcional e cuida do HTTPS automaticamente quando usado
 - o backend aplica migrations ao iniciar
 - o worker sobe separado para processar mensagens assincronas

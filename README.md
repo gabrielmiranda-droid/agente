@@ -38,13 +38,18 @@ Fluxo principal:
 
 ## Estrutura de producao recomendada
 
-O repositorio agora inclui uma base pronta para subir em VPS com dominio:
+O repositorio agora inclui duas formas de subir em producao:
 
 - `docker-compose.vps.yml`
+- `docker-compose.proxy.yml`
 - `.env.production.example`
 - `deploy/production/Caddyfile`
 
-Arquitetura online:
+Arquitetura mais indicada no EasyPanel:
+
+`Internet/EasyPanel -> frontend Next.js -> rewrite /backend -> FastAPI -> Redis/Postgres -> worker Celery`
+
+Arquitetura opcional para VPS crua com proxy proprio:
 
 `Internet -> Caddy -> frontend Next.js + rotas /api -> FastAPI -> Redis/Postgres -> worker Celery`
 
@@ -66,10 +71,16 @@ copy .env.production.example .env.production
 - `CORS_ORIGINS`
 - `OPENAI_API_KEY`
 
-3. Suba em producao:
+3. Suba em producao no EasyPanel/VPS com proxy externo:
 
 ```powershell
 docker compose --env-file .env.production -f docker-compose.vps.yml up -d --build
+```
+
+Se quiser usar o proxy Caddy do proprio repositorio em uma VPS crua:
+
+```powershell
+docker compose --env-file .env.production -f docker-compose.vps.yml -f docker-compose.proxy.yml up -d --build
 ```
 
 4. URLs importantes depois do deploy:
@@ -80,10 +91,11 @@ docker compose --env-file .env.production -f docker-compose.vps.yml up -d --buil
 
 ### Observacoes de deploy
 
-- o frontend em producao usa `NEXT_PUBLIC_API_BASE_URL=/api/v1`
-- o Caddy publica HTTPS automatico com Let's Encrypt
-- as rotas `/api/*`, `/health`, `/docs`, `/redoc` e `/openapi.json` sao enviadas para a API
-- o restante vai para o frontend
+- o frontend em producao usa `NEXT_PUBLIC_API_BASE_URL=/backend`
+- no EasyPanel, publique o servico `frontend`
+- o frontend faz proxy interno para `api:8000/api/v1`
+- se usar `docker-compose.proxy.yml`, o Caddy publica HTTPS automatico com Let's Encrypt
+- no modo com Caddy, as rotas `/api/*`, `/health`, `/docs`, `/redoc` e `/openapi.json` sao enviadas para a API
 - o worker sobe separado no mesmo compose
 - o `scripts/start.sh` roda `alembic upgrade head` antes da API iniciar
 
