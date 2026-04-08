@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.whatsapp import WhatsAppInstance
@@ -19,6 +19,14 @@ class WhatsAppInstanceRepository:
     def get_by_instance_name(self, instance_name: str) -> WhatsAppInstance | None:
         return self.db.scalar(select(WhatsAppInstance).where(WhatsAppInstance.instance_name == instance_name))
 
+    def count_by_company(self, company_id: int) -> int:
+        return int(
+            self.db.scalar(
+                select(func.count(WhatsAppInstance.id)).where(WhatsAppInstance.company_id == company_id)
+            )
+            or 0
+        )
+
     def list_by_company(self, company_id: int) -> list[WhatsAppInstance]:
         return list(
             self.db.scalars(
@@ -27,4 +35,3 @@ class WhatsAppInstanceRepository:
                 .order_by(WhatsAppInstance.created_at.desc())
             ).all()
         )
-

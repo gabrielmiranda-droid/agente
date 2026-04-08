@@ -9,6 +9,7 @@ export function getWhatsappInstances(companyId?: number) {
 }
 
 export function createWhatsappInstance(payload: {
+  company_id?: number;
   name: string;
   instance_name: string;
   api_base_url: string;

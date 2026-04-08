@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class WhatsAppInstanceCreate(BaseModel):
+    company_id: int | None = Field(default=None, ge=1)
     name: str = Field(min_length=2, max_length=255)
     instance_name: str = Field(min_length=2, max_length=120)
     api_base_url: str = Field(min_length=5, max_length=500)
@@ -24,4 +25,3 @@ class WhatsAppInstanceResponse(BaseModel):
     phone_number: str | None
     active: bool
     created_at: datetime
-

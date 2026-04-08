@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const whatsappSchema = z.object({
+  company_id: z.number().int().positive().optional(),
   name: z.string().min(2),
   instance_name: z.string().min(2),
   api_base_url: z.string().url("Informe uma URL válida"),
