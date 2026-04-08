@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (isAuthRoute && token) {
+  if (isAuthRoute && (token || refreshToken)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
